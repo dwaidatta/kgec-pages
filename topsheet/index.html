@@ -4,31 +4,1771 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
-  <title>Topsheet - KGEC Pages</title>
+  <title>Topsheet Maker — KGEC Pages</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    rel="stylesheet"
+  >
+
   <link href="../assets/css/app.css" rel="stylesheet">
+
+  <style>
+
+    /* ═══════════════════════════════════════════════════
+       PAGE LAYOUT
+       ═══════════════════════════════════════════════════ */
+
+    body.page-topsheet {
+      padding-bottom: 0;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       STEP PILLS
+       ═══════════════════════════════════════════════════ */
+
+    .ts-step-bar {
+      display: flex;
+      gap: .4rem;
+    }
+
+    .ts-step-pill {
+      flex: 1;
+      padding: .35rem .55rem;
+      border-radius: 999px;
+
+      border: 1px solid var(--kg-border);
+      background: var(--kg-surface);
+      color: var(--kg-muted);
+
+      font-size: .72rem;
+      font-weight: 600;
+      text-align: center;
+
+      user-select: none;
+    }
+
+    .ts-step-pill.active {
+      background: var(--bs-primary);
+      border-color: var(--bs-primary);
+      color: #fff;
+    }
+
+    .ts-step-pill.done {
+      background: var(--kg-hover);
+      border-color: var(--bs-primary);
+      color: var(--bs-primary);
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       IMAGE PREVIEWS IN SIDEBAR
+       ═══════════════════════════════════════════════════ */
+
+    .ts-img-prev {
+      width: 100%;
+      max-height: 88px;
+
+      object-fit: contain;
+
+      border: 1px dashed var(--kg-border);
+      border-radius: 6px;
+
+      padding: 4px;
+
+      background: #f8fffe;
+
+      display: none;
+    }
+
+    .ts-img-prev.has-img {
+      display: block;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       VALIDATION TABLE
+       ═══════════════════════════════════════════════════ */
+
+    .ts-val-scroll {
+      max-height: 230px;
+      overflow-y: auto;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       PROGRESS
+       ═══════════════════════════════════════════════════ */
+
+    #pdf-progress {
+      display: none;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       A4 TOPSHEET DOCUMENT
+       ═══════════════════════════════════════════════════ */
+
+    .ts-doc {
+      font-family: Arial, Helvetica, sans-serif;
+
+      font-size: 7pt;
+
+      color: #000;
+      background: #fff;
+
+      width: 210mm;
+      min-height: 297mm;
+
+      padding: 5mm 6mm 36mm;
+
+      box-sizing: border-box;
+
+      line-height: 1.25;
+
+      position: relative;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════ */
+
+    .ts-header {
+      text-align: center;
+      margin-bottom: 1.5mm;
+    }
+
+    .ts-title-line {
+      font-size: 8pt;
+      font-weight: bold;
+
+      text-decoration: underline;
+
+      line-height: 1.35;
+
+      outline: none;
+    }
+
+    .ts-subtitle-line {
+      font-size: 7.5pt;
+
+      text-decoration: underline;
+
+      line-height: 1.3;
+
+      outline: none;
+    }
+
+    .ts-college-line {
+      font-size: 7pt;
+      margin-top: 1mm;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       INFORMATION TABLE
+       SINGLE BORDER
+       ═══════════════════════════════════════════════════ */
+
+    .ts-info-table {
+      width: 100%;
+
+      border-collapse: collapse !important;
+      border-spacing: 0 !important;
+
+      border: 1px solid #000 !important;
+
+      margin-bottom: 1.2mm;
+
+      font-size: 7pt;
+    }
+
+    .ts-info-table td {
+      border: 1px solid #000 !important;
+
+      border-width: 1px !important;
+      border-style: solid !important;
+      border-color: #000 !important;
+
+      padding: .9mm 1.5mm;
+
+      width: 50%;
+
+      vertical-align: top;
+
+      box-shadow: none !important;
+    }
+
+    .ts-info-table [contenteditable],
+    .ts-info-table .ts-sf {
+      outline: none;
+
+      display: inline;
+
+      min-width: 8mm;
+
+      cursor: text;
+    }
+
+    .ts-info-table [contenteditable]:focus {
+      background: rgba(4,120,87,.1);
+
+      border-radius: 2px;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       SECTION LABEL
+       ═══════════════════════════════════════════════════ */
+
+    .ts-sec-lbl {
+      font-size: 7pt;
+
+      font-weight: bold;
+
+      margin: .8mm 0 .4mm;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       ASSESSMENT RUBRICS
+
+       DOUBLE OUTER BORDER
+       SINGLE INTERNAL GRID
+       ═══════════════════════════════════════════════════ */
+
+    .ts-rubrics-table {
+      width: 100%;
+
+      /*
+        Separate borders are important here.
+        Using double borders on every cell causes
+        thick black bars when html2canvas renders
+        the table for PDF export.
+      */
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+
+      /* Double outer border */
+      border: 3px double #000 !important;
+
+      margin-bottom: 1.2mm;
+
+      font-size: 6.5pt;
+
+      table-layout: fixed;
+
+      background: #fff;
+
+      box-shadow: none !important;
+    }
+
+    /* Internal grid = single black line */
+    .ts-rubrics-table th,
+    .ts-rubrics-table td {
+      border: 0 !important;
+
+      border-right: 1px solid #000 !important;
+      border-bottom: 1px solid #000 !important;
+
+      border-color: #000 !important;
+
+      padding: .8mm 1mm;
+
+      vertical-align: top;
+
+      box-shadow: none !important;
+    }
+
+    /* Do not add a second right border to the outside edge */
+    .ts-rubrics-table th:last-child,
+    .ts-rubrics-table td:last-child {
+      border-right: 0 !important;
+    }
+
+    /* Do not add another bottom border to the outside edge */
+    .ts-rubrics-table tbody tr:last-child td {
+      border-bottom: 0 !important;
+    }
+
+    .ts-rubrics-table thead th {
+      font-weight: bold;
+
+      text-align: center;
+    }
+
+    .ts-rb-letter {
+      width: 14px;
+
+      text-align: center;
+
+      font-weight: bold;
+    }
+
+    .ts-rb-criteria {
+      width: 17%;
+
+      font-weight: bold;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       RUBRIC CONTENT
+       ═══════════════════════════════════════════════════ */
+
+    .ts-rubric-content {
+      display: block;
+
+      min-height: 12mm;
+
+      line-height: 1.3;
+
+      outline: none;
+
+      cursor: text;
+
+      overflow-wrap: anywhere;
+    }
+
+    .ts-rubric-content:focus {
+      background: rgba(4,120,87,.08);
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       MARKS TABULATION
+       SINGLE BORDER
+       ═══════════════════════════════════════════════════ */
+
+    .ts-marks-table {
+      width: 100%;
+
+      border-collapse: collapse !important;
+      border-spacing: 0 !important;
+
+      border: 1px solid #000 !important;
+
+      margin-bottom: 1.2mm;
+
+      font-size: 6.5pt;
+
+      table-layout: fixed;
+    }
+
+    .ts-marks-table th,
+    .ts-marks-table td {
+      border: 1px solid #000 !important;
+
+      border-width: 1px !important;
+      border-style: solid !important;
+      border-color: #000 !important;
+
+      padding: .55mm .9mm;
+
+      vertical-align: middle;
+
+      text-align: center;
+
+      box-shadow: none !important;
+    }
+
+    .ts-marks-table th {
+      font-weight: bold;
+    }
+
+    .ts-marks-table .ts-qno {
+      text-align: left;
+      width: 11%;
+    }
+
+    .ts-marks-table .ts-allotted {
+      width: 12%;
+    }
+
+    .ts-marks-table .ts-awarded {
+      width: 12%;
+    }
+
+    .ts-marks-table .ts-co {
+      width: 14%;
+    }
+
+    .ts-marks-table .ts-bloom {
+      width: 19%;
+    }
+
+    .ts-marks-table .ts-remarks {
+      width: 32%;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       MARK CONTENT
+       ═══════════════════════════════════════════════════ */
+
+    .ts-mark-content {
+      display: block;
+
+      min-height: 6mm;
+
+      line-height: 1.25;
+
+      outline: none;
+
+      cursor: text;
+
+      overflow-wrap: anywhere;
+    }
+
+    .ts-mark-content:focus {
+      background: rgba(4,120,87,.08);
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       MARKS ROW ACTIONS
+       ═══════════════════════════════════════════════════ */
+
+    .ts-mark-row-selected td {
+      outline: 1px solid rgba(4,120,87,.35);
+      outline-offset: -1px;
+    }
+
+    #card-mark-row-actions .btn {
+      font-size: .8rem;
+    }
+
+    #mark-row-number {
+      font-weight: 600;
+    }
+
+    #btn-remove-mark-row:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       FEEDBACK
+       ═══════════════════════════════════════════════════ */
+
+    .ts-feedback {
+      font-size: 7pt;
+
+      margin-bottom: 2mm;
+    }
+
+    .ts-fb-lbl {
+      font-weight: bold;
+
+      text-decoration: underline;
+    }
+
+    .ts-fb-line {
+      margin: .5mm 0;
+    }
+
+    .ts-feedback [contenteditable] {
+      outline: none;
+
+      cursor: text;
+
+      display: inline;
+
+      min-width: 15mm;
+    }
+
+    .ts-feedback [contenteditable]:focus {
+      background: rgba(4,120,87,.08);
+
+      border-radius: 2px;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       SIGNATURE SECTION
+       ═══════════════════════════════════════════════════ */
+
+    .ts-sigs {
+      position: absolute;
+
+      bottom: 8mm;
+
+      left: 6mm;
+      right: 6mm;
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 2mm;
+    }
+
+    .ts-sigs-row {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: flex-end;
+
+      width: 100%;
+    }
+
+    .ts-sig-left {
+      flex: 1;
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: flex-end;
+    }
+
+    .ts-sig-right {
+      flex: 0 0 45%;
+
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: center;
+
+      justify-content: flex-end;
+    }
+
+    .ts-sig-img-area {
+      height: 16mm;
+
+      display: flex;
+
+      align-items: flex-end;
+
+      justify-content: center;
+
+      margin-bottom: 1mm;
+    }
+
+    .ts-sig-img {
+      max-height: 16mm;
+
+      max-width: 100%;
+
+      object-fit: contain;
+    }
+
+    .ts-sig-left .ts-sig-img-area {
+      justify-content: flex-start;
+    }
+
+    .ts-sig-left .ts-sig-lbl {
+      text-align: left;
+    }
+
+    .ts-sig-lbl {
+      font-size: 7.5pt;
+
+      margin: 0;
+    }
+
+    .ts-review-text {
+      font-size: 7.5pt;
+
+      margin: 0;
+
+      padding-bottom: 1mm;
+
+      line-height: 1.3;
+    }
+
+    .ts-seal-img {
+      max-width: 22mm;
+
+      max-height: 22mm;
+
+      object-fit: contain;
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       EDITING HIGHLIGHTS
+       ═══════════════════════════════════════════════════ */
+
+    .ts-editable [contenteditable] {
+      border-bottom: 1px dashed rgba(4,120,87,.3);
+    }
+
+    .ts-editable [contenteditable]:hover {
+      background: rgba(4,120,87,.04);
+    }
+
+    .ts-editable [contenteditable]:focus {
+      background: rgba(4,120,87,.11) !important;
+
+      border-bottom-color: rgba(4,120,87,.8);
+    }
+
+
+    /* ═══════════════════════════════════════════════════
+       PLACEHOLDER
+       ═══════════════════════════════════════════════════ */
+
+    .ts-ph {
+      color: #c0c0c0;
+
+      font-style: italic;
+    }
+
+  </style>
 </head>
+
+
 <body class="page-topsheet">
+
   <div id="navbar-root"></div>
 
-  <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
-      <div class="d-flex align-items-center flex-wrap gap-2">
-        <h1 class="mb-0">Topsheet</h1>
-        <span class="badge text-bg-light border">For Teachers</span>
+
+  <div class="generator-layout">
+
+
+    <!-- ═══════════════════════════════════════════════
+         A4 PREVIEW PANE
+         ═══════════════════════════════════════════════ -->
+
+    <div class="generator-preview custom-scroll">
+
+      <div class="a4-sheet-outer">
+
+        <div class="a4-sheet">
+
+          <div
+            class="ts-doc ts-editable"
+            id="ts-preview"
+          >
+
+
+            <!-- ═══════════════════════════════════════
+                 HEADER
+                 ═══════════════════════════════════════ -->
+
+            <div class="ts-header">
+
+              <div
+                class="ts-title-line"
+                data-field="examinationTitle"
+                contenteditable="true"
+                spellcheck="false"
+              >
+                Maulana Abul Kalam Azad University of Technology, West Bengal Top Sheet for CA1 Marks Submission
+              </div>
+
+
+              <div
+                class="ts-subtitle-line"
+                data-field="examinationSubtitle"
+                contenteditable="true"
+                spellcheck="false"
+              >
+                (Written Test as a part of Continuous Assessment)
+              </div>
+
+
+              <div class="ts-college-line">
+
+                College Code &amp; No:&nbsp;
+
+                <span
+                  data-field="collegeCode"
+                  contenteditable="true"
+                  spellcheck="false"
+                >102</span>,
+
+                &nbsp;
+
+                <span
+                  data-field="collegeName"
+                  contenteditable="true"
+                  spellcheck="false"
+                >
+                  Kalyani Government Engineering College
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- ═══════════════════════════════════════
+                 INFORMATION TABLE
+                 ═══════════════════════════════════════ -->
+
+            <table class="ts-info-table">
+
+              <tbody>
+
+                <tr>
+
+                  <td>
+
+                    Programme:&nbsp;
+
+                    <span
+                      data-field="programme"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter programme
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    Year/Semester:&nbsp;
+
+                    <span
+                      data-field="semester"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter year / semester
+                    </span>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+
+                    Subject (course):&nbsp;
+
+                    <span
+                      data-field="subject"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter Subject
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    Paper (course) Code:&nbsp;
+
+                    <span
+                      data-field="courseCode"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter Paper Code
+                    </span>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+
+                    UPID:&nbsp;
+
+                    <span
+                      data-field="upid"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter UPID
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    Date of Examination:&nbsp;
+
+                    <span
+                      data-field="examDate"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter Date of Examination
+                    </span>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+
+                    Name of the Student:&nbsp;
+
+                    <span class="ts-sf ts-student-name ts-ph">
+                      — student name —
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    Roll Number:&nbsp;
+
+                    <span class="ts-sf ts-student-roll ts-ph">
+                      —
+                    </span>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+
+                    Subject Teacher:&nbsp;
+
+                    <span
+                      data-field="teacherName"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter Teacher's name
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    Mobile Number:&nbsp;
+
+                    <span
+                      data-field="teacherPhone"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter Mobile number
+                    </span>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td>
+
+                    Full Marks:&nbsp;
+
+                    <span
+                      data-field="fullMarks"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter Full Marks
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    Duration:&nbsp;
+
+                    <span
+                      data-field="duration"
+                      contenteditable="true"
+                      spellcheck="false"
+                    >
+                      Enter Duration
+                    </span>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+
+            <!-- ═══════════════════════════════════════
+                 ASSESSMENT RUBRICS
+                 ═══════════════════════════════════════ -->
+
+            <p class="ts-sec-lbl">
+              Assessment Rubrics:
+            </p>
+
+
+            <table class="ts-rubrics-table">
+
+              <thead>
+
+                <tr>
+
+                  <th class="ts-rb-letter"></th>
+
+                  <th class="ts-rb-criteria">
+                    Criteria
+                  </th>
+
+                  <th>
+                    (1) Excellent (80–100%)
+                  </th>
+
+                  <th>
+                    (2) Good (60–79%)
+                  </th>
+
+                  <th>
+                    (3) Satisfactory (40–59%)
+                  </th>
+
+                  <th>
+                    (4) Needs Improvement (&lt;40%)
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="ts-rubrics-body">
+                <!-- Filled by index.js -->
+              </tbody>
+
+            </table>
+
+
+            <!-- ═══════════════════════════════════════
+                 MARKS TABULATION
+                 ═══════════════════════════════════════ -->
+
+            <p class="ts-sec-lbl">
+              Marks Tabulation:
+            </p>
+
+
+            <table class="ts-marks-table">
+
+              <thead>
+
+                <tr>
+
+                  <th class="ts-qno">
+                    Q. No.
+                  </th>
+
+                  <th class="ts-allotted">
+                    Marks Allotted
+                  </th>
+
+                  <th class="ts-awarded">
+                    Marks Awarded
+                  </th>
+
+                  <th class="ts-co">
+                    Course Outcome
+                  </th>
+
+                  <th class="ts-bloom">
+                    Bloom's Level
+                  </th>
+
+                  <th class="ts-remarks">
+                    Remarks
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="ts-marks-body">
+                <!-- Filled by index.js -->
+              </tbody>
+
+            </table>
+
+
+            <!-- ═══════════════════════════════════════
+                 EXAMINER FEEDBACK
+                 ═══════════════════════════════════════ -->
+
+            <div class="ts-feedback">
+
+              <span class="ts-fb-lbl">
+                Examiner's Feedback:
+              </span>
+
+              <br>
+
+
+              <span class="ts-fb-line">
+
+                Strengths of the Student:&nbsp;
+
+                <span
+                  data-field="feedbackStrengths"
+                  contenteditable="true"
+                  spellcheck="false"
+                ></span>
+
+              </span>
+
+              <br>
+
+
+              <span class="ts-fb-line">
+
+                Areas for Improvement:&nbsp;
+
+                <span
+                  data-field="feedbackImprovements"
+                  contenteditable="true"
+                  spellcheck="false"
+                ></span>
+
+              </span>
+
+              <br>
+
+
+              <span class="ts-fb-line">
+
+                Suggested Corrective Measures:&nbsp;
+
+                <span
+                  data-field="feedbackCorrective"
+                  contenteditable="true"
+                  spellcheck="false"
+                ></span>
+
+              </span>
+
+            </div>
+
+
+            <!-- ═══════════════════════════════════════
+                 SIGNATURES
+                 ═══════════════════════════════════════ -->
+
+            <div class="ts-sigs">
+
+
+              <!-- ROW 1 -->
+
+              <div
+                class="ts-sigs-row"
+                style="margin-bottom: 6mm;"
+              >
+
+                <div class="ts-sig-left">
+
+                  <p class="ts-review-text">
+
+                    I have reviewed my evaluated answer script and understood the marks and feedback awarded.
+
+                  </p>
+
+                </div>
+
+
+                <div class="ts-sig-right">
+
+                  <div class="ts-sig-img-area">
+
+                    <img
+                      class="ts-sig-img ts-teacher-sig"
+                      src=""
+                      alt=""
+                      style="display:none;"
+                    >
+
+                  </div>
+
+
+                  <p class="ts-sig-lbl">
+
+                    Signature of the Examiner with date
+
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <!-- ROW 2 -->
+
+              <div class="ts-sigs-row">
+
+
+                <div class="ts-sig-left">
+
+                  <div class="ts-sig-img-area">
+
+                    <img
+                      class="ts-sig-img ts-student-sig"
+                      src=""
+                      alt=""
+                      style="display:none;"
+                    >
+
+                  </div>
+
+
+                  <p class="ts-sig-lbl">
+
+                    Signature of the student with date
+
+                  </p>
+
+                </div>
+
+
+                <div class="ts-sig-right">
+
+                  <img
+                    class="ts-seal-img ts-college-seal"
+                    src=""
+                    alt=""
+                    style="display:none;"
+                  >
+
+                </div>
+
+              </div>
+
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
-      <a href="../index.html" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+
     </div>
 
-    <div class="empty-state">
-      <i class="bi bi-clipboard-data empty-state-icon"></i>
-      <h5>Coming soon</h5>
-      <p class="mb-0">Mark tabulation topsheets for teachers aren't available yet.</p>
+
+    <!-- ═══════════════════════════════════════════════
+         SIDEBAR
+         ═══════════════════════════════════════════════ -->
+
+    <div class="generator-sidebar custom-scroll">
+
+      <div class="d-flex flex-column gap-3">
+
+
+        <!-- STEP INDICATOR -->
+
+        <div class="ts-step-bar">
+
+          <div
+            class="ts-step-pill active"
+            id="pill-s1"
+          >
+            <i class="bi bi-1-circle-fill"></i>
+            Common Fields
+          </div>
+
+
+          <div
+            class="ts-step-pill"
+            id="pill-s2"
+          >
+            <i class="bi bi-2-circle"></i>
+            Students
+          </div>
+
+        </div>
+
+
+        <!-- ═══════════════════════════════════════════
+             STEP 1
+             ═══════════════════════════════════════════ -->
+
+        <div id="sidebar-s1">
+
+
+          <div
+            class="alert alert-info py-2 px-3 small mb-0"
+            role="alert"
+          >
+
+            <i class="bi bi-pencil-fill"></i>
+
+            Click any text on the A4 preview to edit it directly.
+
+          </div>
+
+
+          <!-- TEACHER SIGNATURE -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-pen-fill"></i>
+
+              Teacher / Examiner Signature
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <label class="form-label small mb-0">
+
+                Upload signature image (JPG/PNG)
+
+              </label>
+
+
+              <input
+                type="file"
+                id="inp-teacher-sig"
+                class="form-control form-control-sm"
+                accept="image/*"
+              >
+
+
+              <img
+                id="prev-teacher-sig"
+                class="ts-img-prev"
+                alt="Teacher signature preview"
+              >
+
+
+              <div
+                id="stat-teacher-sig"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- COLLEGE SEAL -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-shield-fill-check"></i>
+
+              College Seal
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <label class="form-label small mb-0">
+
+                Upload seal image (JPG/PNG)
+
+              </label>
+
+
+              <input
+                type="file"
+                id="inp-college-seal"
+                class="form-control form-control-sm"
+                accept="image/*"
+              >
+
+
+              <img
+                id="prev-college-seal"
+                class="ts-img-prev"
+                alt="College seal preview"
+              >
+
+
+              <div
+                id="stat-college-seal"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- MARKS ROW ACTIONS -->
+
+          <div
+            class="card"
+            id="card-mark-row-actions"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-table"></i>
+
+              Marks Row Actions
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <div
+                id="mark-row-number"
+                class="small text-muted"
+              >
+                Row 1
+              </div>
+
+
+              <button
+                id="btn-remove-mark-row"
+                type="button"
+                class="btn btn-outline-danger"
+              >
+
+                <i class="bi bi-trash3-fill"></i>
+
+                Remove This Entire Row
+
+              </button>
+
+
+              <button
+                id="btn-add-mark-row-above"
+                type="button"
+                class="btn btn-outline-primary"
+              >
+
+                <i class="bi bi-arrow-up"></i>
+
+                Add New Row Above
+
+              </button>
+
+
+              <button
+                id="btn-add-mark-row-below"
+                type="button"
+                class="btn btn-outline-primary"
+              >
+
+                <i class="bi bi-arrow-down"></i>
+
+                Add New Row Below
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- CTA -->
+
+          <div class="card cta-card">
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <p class="small text-muted mb-1">
+
+                Fill all fields on the A4 preview, upload teacher signature and college seal, then proceed to Step 2.
+
+              </p>
+
+
+              <button
+                id="btn-go-s2"
+                class="btn btn-primary btn-lg w-100"
+              >
+
+                <i class="bi bi-arrow-right-circle-fill"></i>
+
+                Complete All Common Fields
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ═══════════════════════════════════════════
+             STEP 2
+             ═══════════════════════════════════════════ -->
+
+        <div
+          id="sidebar-s2"
+          style="display:none;"
+        >
+
+
+          <!-- BACK -->
+
+          <button
+            id="btn-back-s1"
+            class="btn btn-sm btn-outline-secondary w-100"
+          >
+
+            <i class="bi bi-arrow-left"></i>
+
+            Back to Step 1
+
+          </button>
+
+
+          <!-- CSV -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-filetype-csv"></i>
+
+              Student CSV
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <p class="small text-muted mb-0">
+
+                Requires <code>name</code> and <code>roll</code> columns.
+                Additional columns are ignored.
+
+              </p>
+
+
+              <input
+                type="file"
+                id="inp-csv"
+                class="form-control form-control-sm"
+                accept=".csv"
+              >
+
+
+              <div
+                id="stat-csv"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- SIGNATURE FOLDER -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-folder2-open"></i>
+
+              Signature Folder
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <p class="small text-muted mb-0">
+
+                File naming:
+                <code>FirstName_LastName_Roll.png</code>
+
+                <br>
+
+                e.g.
+                <code>Arpan_Biswas_101.png</code>
+
+              </p>
+
+
+              <input
+                type="file"
+                id="inp-sig-folder"
+                class="form-control form-control-sm"
+                webkitdirectory
+                multiple
+                accept="image/*"
+              >
+
+
+              <div
+                id="stat-folder"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- VALIDATION -->
+
+          <div
+            class="card"
+            id="card-validation"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-check2-all"></i>
+
+              Validation Summary
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <div id="val-summary"></div>
+
+
+              <div class="ts-val-scroll">
+
+                <table
+                  class="table table-sm table-bordered mb-0"
+                  style="font-size:.71rem;"
+                >
+
+                  <thead class="table-light">
+
+                    <tr>
+
+                      <th>
+                        Roll
+                      </th>
+
+                      <th>
+                        Name
+                      </th>
+
+                      <th>
+                        Signature
+                      </th>
+
+                      <th>
+                        Status
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody id="val-table-body"></tbody>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- STUDENT PREVIEW -->
+
+          <div
+            class="card"
+            id="card-preview-sel"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-eye-fill"></i>
+
+              Preview Student
+
+            </div>
+
+
+            <div class="card-body">
+
+              <select
+                id="sel-student"
+                class="form-select form-select-sm"
+              ></select>
+
+            </div>
+
+          </div>
+
+
+          <!-- GENERATE / EXPORT -->
+
+          <div
+            class="card cta-card"
+            id="card-generate"
+            style="display:none;"
+          >
+
+            <div class="card-body d-flex flex-column gap-2">
+
+
+              <!-- PROGRESS -->
+
+              <div id="pdf-progress">
+
+                <div
+                  class="d-flex justify-content-between small mb-1"
+                >
+
+                  <span id="prog-label">
+                    Processing…
+                  </span>
+
+                  <span id="prog-pct">
+                    0%
+                  </span>
+
+                </div>
+
+
+                <div
+                  class="progress"
+                  style="height:6px;"
+                >
+
+                  <div
+                    class="progress-bar bg-primary"
+                    id="prog-bar"
+                    style="width:0%;transition:width .2s ease;"
+                  ></div>
+
+                </div>
+
+              </div>
+
+
+              <!-- GENERATE -->
+
+              <button
+                id="btn-generate"
+                class="btn btn-success btn-lg w-100"
+              >
+
+                <i class="bi bi-stack"></i>
+
+                Generate All Topsheets
+
+              </button>
+
+
+              <!-- PDF -->
+
+              <button
+                id="btn-export-pdf"
+                class="btn btn-primary btn-lg w-100"
+                disabled
+              >
+
+                <i class="bi bi-file-earmark-pdf-fill"></i>
+
+                Export All as PDF
+
+              </button>
+
+
+              <!-- ZIP -->
+
+              <button
+                id="btn-export-zip"
+                class="btn btn-secondary btn-lg w-100"
+                disabled
+              >
+
+                <i class="bi bi-file-zip-fill"></i>
+
+                Export All as PDFs (ZIP)
+
+              </button>
+
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
+
   </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       JAVASCRIPT LIBRARIES
+       ═══════════════════════════════════════════════ -->
+
+  <script
+    src="https://docs.opencv.org/4.8.0/opencv.js"
+    type="text/javascript"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"
+  ></script>
+
+
+  <script
+    type="module"
+    src="./index.js"
+  ></script>
+
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script type="module" src="./index.js"></script>
 </html>
