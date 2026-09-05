@@ -54,3 +54,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing changes.
 ## License
 
 See [LICENSE](LICENSE). All rights reserved — copying, redistribution, or reuse of this project or its code is not permitted.
+
+<!-- sample PR: verifying branch protection + "Validate & Test" required check -->
