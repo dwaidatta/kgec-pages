@@ -497,7 +497,7 @@ function allSignatures() {
     (s) => !st.studentId || s.userId === st.studentId || unlinked.has(s.id)
   );
 
-  const extra = st.sessionSigs.filter((s) => !saved.some((x) => x.dataUrl === s.dataUrl));
+  const extra = st.sessionSigs.filter((s) => !saved.some((x) => x.variants[0].dataUrl === s.variants[0].dataUrl));
 
   return [...saved.map((s) => ({ ...s, saved: true })), ...extra.map((s) => ({ ...s, saved: false }))];
 }
@@ -521,33 +521,50 @@ function renderSigList() {
 
       chip.className = "st-sig-chip";
 
-      const btn = document.createElement("button");
+      // Each variant is placed on its own; the group is only for identifying
+      // and managing them, so the student badge is shown once below the row.
+      const row = document.createElement("div");
 
-      btn.type = "button";
+      row.className = "d-flex gap-1";
 
-      btn.className = "btn btn-outline-secondary w-100 p-1" + (st.pending?.sig?.id === sig.id ? " active" : "");
+      sig.variants.forEach((variant) => {
+        const btn = document.createElement("button");
 
-      btn.title = `${sig.label}: click it, then click the page`;
+        btn.type = "button";
 
-      btn.innerHTML = '<img alt=""><div class="small text-muted"></div>';
+        const active = st.pending?.groupId === sig.id && st.pending?.sig.key === variant.key;
 
-      btn.querySelector("img").src = sig.dataUrl;
+        btn.className = "btn btn-outline-secondary p-1 st-sig-variant" + (active ? " active" : "");
 
-      const caption = btn.querySelector("div");
+        btn.title = `${variant.label}: click it, then click the page`;
 
-      caption.textContent = sig.saved ? sig.label : `${sig.label} (not saved)`;
-      caption.appendChild(linkBadge(sig.userId, users));
+        btn.innerHTML = '<img alt=""><div class="small text-muted"></div>';
 
-      btn.addEventListener("click", () => {
-        if (!st.pages.length) {
-          showToast("Upload the PDF first.", "warning");
-          return;
-        }
+        btn.querySelector("img").src = variant.dataUrl;
+        btn.querySelector("div").textContent = variant.label;
 
-        setPending({ kind: "sig", sig });
+        btn.addEventListener("click", () => {
+          if (!st.pages.length) {
+            showToast("Upload the PDF first.", "warning");
+            return;
+          }
+
+          setPending({ kind: "sig", sig: variant, groupId: sig.id });
+        });
+
+        row.appendChild(btn);
       });
 
-      chip.appendChild(btn);
+      chip.appendChild(row);
+
+      const caption = document.createElement("div");
+
+      caption.className = "small text-muted mt-1";
+
+      if (!sig.saved) caption.append("Not saved ");
+      caption.appendChild(linkBadge(sig.userId, users));
+
+      chip.appendChild(caption);
 
       if (sig.saved) {
         const del = document.createElement("button");
@@ -559,7 +576,7 @@ function renderSigList() {
 
         del.addEventListener("click", () => {
           removeSavedSignature(sig.id);
-          if (st.pending?.sig?.id === sig.id) setPending(null);
+          if (st.pending?.groupId === sig.id) setPending(null);
           renderSigList();
         });
 
@@ -632,16 +649,11 @@ async function makeSignature() {
 
   if (!picked?.variants.length) return;
 
-  // Every variant (both inks) is stored and linked to the same student.
-  let failed = false;
-
-  picked.variants.forEach((v) => {
-    if (saveSignature({ label: v.label, dataUrl: v.dataUrl, userId: picked.userId })) return;
-    failed = true;
-    st.sessionSigs.push({ id: `tmp-${st.nextId++}`, label: v.label, dataUrl: v.dataUrl, userId: picked.userId });
-  });
+  // Every variant (both inks) is stored as one group linked to the student.
+  const failed = !saveSignature({ variants: picked.variants, userId: picked.userId });
 
   if (failed) {
+    st.sessionSigs.push({ id: `tmp-${st.nextId++}`, userId: picked.userId, variants: picked.variants });
     showToast("Could not save on this device (storage full or blocked). Available for this session only.", "warning");
   } else {
     showToast("Saved on this device.", "success");

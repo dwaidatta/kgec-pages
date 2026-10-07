@@ -28,8 +28,8 @@ const flow = mountSignatureFlow(document.getElementById("flow"), {
   doneLabel: "Get signature",
   offerSave: true, // shows the "link to a student" choice; saving is automatic
   onDone: (variants, { userId }) => {
-    // Both ink colours are stored and linked to the same student.
-    const failed = variants.some((v) => !saveSignature({ label: v.label, dataUrl: v.dataUrl, userId }));
+    // Both ink colours are stored as one group linked to the student.
+    const failed = !saveSignature({ variants, userId });
     if (failed) {
       showToast("Could not save on this device (storage full or blocked).", "warning");
     }

@@ -82,22 +82,31 @@ function renderUsers() {
   renderUnlinkedSignatures();
 }
 
-// Small signature preview with a delete button.
-function signatureThumb(sig) {
+// Every variant of a signature in one tile, with a single delete button for the group.
+function signatureThumb(group) {
   const wrap = document.createElement("div");
   wrap.className = "border rounded p-1 bg-white text-center position-relative";
-  wrap.style.width = "110px";
   wrap.innerHTML = `
-    <img alt="" style="max-width:100%;max-height:50px;">
-    <div class="small text-muted text-truncate sig-label"></div>
+    <div class="d-flex gap-1 sig-variants"></div>
     <button type="button" class="btn btn-danger sig-del" title="Delete signature">
       <i class="bi bi-x"></i>
     </button>
   `;
-  wrap.querySelector("img").src = sig.dataUrl;
-  wrap.querySelector(".sig-label").textContent = sig.label;
-  wrap.querySelector("button").addEventListener("click", () => deleteSignature(sig.id));
+  wrap.querySelector(".sig-variants").replaceChildren(...group.variants.map((v) => variantPreview(v)));
+  wrap.querySelector("button").addEventListener("click", () => deleteSignature(group.id));
   return wrap;
+}
+
+function variantPreview(variant, maxHeight = 50) {
+  const el = document.createElement("div");
+  el.style.width = "100px";
+  el.innerHTML = `
+    <img alt="" style="max-width:100%;max-height:${maxHeight}px;">
+    <div class="small text-muted text-truncate"></div>
+  `;
+  el.querySelector("img").src = variant.dataUrl;
+  el.querySelector("div").textContent = variant.label;
+  return el;
 }
 
 async function deleteSignature(id) {
@@ -222,16 +231,12 @@ function renderUnlinkedSignatures() {
                 <i class="bi bi-trash"></i>
               </button>
             </div>
-            <div class="border rounded p-2 mb-2 bg-white text-center">
-              <img alt="" style="max-width:100%;max-height:70px;">
-            </div>
-            <div class="small text-muted mb-2 sig-label"></div>
+            <div class="border rounded p-2 mb-2 bg-white d-flex justify-content-center gap-2 sig-variants"></div>
             <select class="form-select form-select-sm" aria-label="Link to a student"></select>
           </div>
         </div>
       `;
-      col.querySelector("img").src = sig.dataUrl;
-      col.querySelector(".sig-label").textContent = sig.label;
+      col.querySelector(".sig-variants").replaceChildren(...sig.variants.map((v) => variantPreview(v, 70)));
 
       const select = col.querySelector("select");
       populateStudentSelect(select, { unlinkedLabel: "Link to a student..." });

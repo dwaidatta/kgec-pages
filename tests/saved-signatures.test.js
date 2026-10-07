@@ -9,6 +9,10 @@ import {
   listSignaturesForUser,
   listUnlinkedSignatures,
 } from "../lib/saved-signatures.js";
+import { KEYS } from "../lib/storage.js";
+
+const black = (n = "AAA") => ({ key: "black", label: "Black ink", dataUrl: `data:image/png;base64,${n}` });
+const blue = (n = "BBB") => ({ key: "blue", label: "Blue ink", dataUrl: `data:image/png;base64,${n}` });
 
 beforeEach(() => {
   globalThis.localStorage.clear();
@@ -18,57 +22,69 @@ test("listSavedSignatures is empty by default", () => {
   assert.deepEqual(listSavedSignatures(), []);
 });
 
-test("saveSignature stores an entry with an id", () => {
-  const entry = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA" });
-  assert.ok(entry.id);
-  assert.deepEqual(listSavedSignatures(), [entry]);
+test("saveSignature stores both variants as one group with an id", () => {
+  const group = saveSignature({ variants: [black(), blue()] });
+  assert.ok(group.id);
+  assert.deepEqual(group.variants.map((v) => v.label), ["Black ink", "Blue ink"]);
+  assert.deepEqual(listSavedSignatures(), [group]);
 });
 
-test("saveSignature does not duplicate the same image", () => {
-  const a = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA" });
-  const b = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA" });
+test("saveSignature does not duplicate the same group", () => {
+  const a = saveSignature({ variants: [black(), blue()] });
+  const b = saveSignature({ variants: [black(), blue()] });
   assert.equal(a.id, b.id);
   assert.equal(listSavedSignatures().length, 1);
 });
 
-test("removeSavedSignature deletes by id", () => {
-  const a = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA" });
-  saveSignature({ label: "Blue ink", dataUrl: "data:image/png;base64,BBB" });
+test("removeSavedSignature deletes the whole group", () => {
+  const a = saveSignature({ variants: [black(), blue()] });
+  saveSignature({ variants: [black("CCC"), blue("DDD")] });
   removeSavedSignature(a.id);
-  assert.deepEqual(listSavedSignatures().map((s) => s.label), ["Blue ink"]);
+  assert.equal(listSavedSignatures().length, 1);
+  assert.equal(listSavedSignatures()[0].variants[0].dataUrl, "data:image/png;base64,CCC");
 });
 
 test("saveSignature defaults to unlinked", () => {
-  const entry = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA" });
-  assert.equal(entry.userId, null);
+  assert.equal(saveSignature({ variants: [black()] }).userId, null);
 });
 
-test("the same image can be saved for different students", () => {
-  const a = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA", userId: "u1" });
-  const b = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA", userId: "u2" });
+test("the same images can be saved for different students", () => {
+  const a = saveSignature({ variants: [black(), blue()], userId: "u1" });
+  const b = saveSignature({ variants: [black(), blue()], userId: "u2" });
   assert.notEqual(a.id, b.id);
   assert.equal(listSavedSignatures().length, 2);
 });
 
-test("listSignaturesForUser returns only that student's signatures", () => {
-  saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA", userId: "u1" });
-  saveSignature({ label: "Blue ink", dataUrl: "data:image/png;base64,BBB" });
-  assert.deepEqual(listSignaturesForUser("u1").map((s) => s.label), ["Black ink"]);
+test("listSignaturesForUser returns only that student's groups", () => {
+  saveSignature({ variants: [black(), blue()], userId: "u1" });
+  saveSignature({ variants: [black("CCC")] });
+  assert.equal(listSignaturesForUser("u1").length, 1);
+  assert.equal(listSignaturesForUser("u1")[0].variants.length, 2);
 });
 
-test("listUnlinkedSignatures includes signatures of deleted students", () => {
-  saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA", userId: "u1" });
-  saveSignature({ label: "Blue ink", dataUrl: "data:image/png;base64,BBB", userId: "gone" });
-  saveSignature({ label: "Original image", dataUrl: "data:image/png;base64,CCC" });
+test("listUnlinkedSignatures includes groups of deleted students", () => {
+  saveSignature({ variants: [black()], userId: "u1" });
+  saveSignature({ variants: [black("CCC")], userId: "gone" });
+  saveSignature({ variants: [{ key: "original", label: "Original image", dataUrl: "data:image/png;base64,EEE" }] });
   const unlinked = listUnlinkedSignatures([{ id: "u1" }]);
-  assert.deepEqual(unlinked.map((s) => s.label), ["Blue ink", "Original image"]);
+  assert.deepEqual(unlinked.map((g) => g.variants[0].label), ["Black ink", "Original image"]);
 });
 
-test("linkSignature links and unlinks", () => {
-  const a = saveSignature({ label: "Black ink", dataUrl: "data:image/png;base64,AAA" });
+test("linkSignature links and unlinks the whole group", () => {
+  const a = saveSignature({ variants: [black(), blue()] });
   assert.ok(linkSignature(a.id, "u1"));
   assert.equal(listSignaturesForUser("u1").length, 1);
   assert.ok(linkSignature(a.id, null));
   assert.equal(listSignaturesForUser("u1").length, 0);
   assert.equal(linkSignature("missing", "u1"), false);
+});
+
+test("signatures saved as single images are read as one-variant groups", () => {
+  globalThis.localStorage.setItem(
+    KEYS.SIGNATURES,
+    JSON.stringify([{ id: "old", label: "Blue ink", dataUrl: "data:image/png;base64,OLD", userId: "u1" }])
+  );
+  const [group] = listSignaturesForUser("u1");
+  assert.equal(group.id, "old");
+  assert.deepEqual(group.variants, [{ key: "Blue ink", label: "Blue ink", dataUrl: "data:image/png;base64,OLD" }]);
 });
