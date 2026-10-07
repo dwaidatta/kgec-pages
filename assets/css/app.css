@@ -28,12 +28,12 @@
   --bs-secondary-color-rgb: 22, 36, 31;
   --bs-tertiary-color: rgba(22, 36, 31, 0.5);
   --bs-tertiary-bg: #eef8f5;
-  --bs-border-color: #aed9cc;
-  --bs-border-color-translucent: rgba(4, 120, 87, 0.15);
+  --bs-border-color: #4e9a84;
+  --bs-border-color-translucent: rgba(78, 154, 132, 0.6);
 
   --kg-accent-blue: #1d4ed8;
   --kg-surface: #ffffff;
-  --kg-border: #aed9cc;
+  --kg-border: #4e9a84;
   --kg-muted: #3c5a54;
   --kg-hover: #e3f3ee;
   --kg-shadow-sm: 0 1px 2px rgba(10, 45, 40, 0.08), 0 1px 3px rgba(10, 45, 40, 0.1);
@@ -103,7 +103,7 @@ h1 {
 
 .custom-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #7fbcac transparent;
+  scrollbar-color: #4e9a84 transparent;
 }
 
 .custom-scroll::-webkit-scrollbar {
@@ -112,7 +112,7 @@ h1 {
 }
 
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: #7fbcac;
+  background: #4e9a84;
   border-radius: 999px;
 }
 
@@ -401,7 +401,7 @@ a.topbar-chip:focus {
 
 .cta-card {
   border-color: var(--bs-primary);
-  background: linear-gradient(135deg, #eef8f5, #ffffff 55%);
+  background: var(--kg-surface);
 }
 
 /* Empty states */
@@ -563,7 +563,7 @@ a.topbar-chip:focus {
 .feature-card:hover {
   box-shadow: var(--kg-shadow-md);
   transform: translateY(-2px);
-  border-color: #7fbcac;
+  border-color: #4e9a84;
   color: inherit;
 }
 
@@ -664,7 +664,7 @@ a.topbar-chip:focus {
   margin-top: 3rem;
   padding: 2.25rem 1.75rem;
   border-radius: var(--bs-border-radius-xl);
-  background: linear-gradient(135deg, #eef8f5, #ffffff 65%);
+  background: var(--kg-surface);
   border: 1px solid var(--kg-border);
 }
 
@@ -688,28 +688,6 @@ a.topbar-chip:focus {
   border: 1px solid var(--kg-border);
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--kg-shadow-sm);
-}
-
-.home-footer-contributors {
-  text-decoration: none;
-  color: inherit;
-  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
-}
-
-.home-footer-contributors:hover {
-  box-shadow: var(--kg-shadow-md);
-  transform: translateY(-2px);
-  border-color: #7fbcac;
-  color: inherit;
-}
-
-.home-footer-contributors .bi-arrow-right {
-  color: var(--bs-primary);
-  transition: transform 0.18s ease;
-}
-
-.home-footer-contributors:hover .bi-arrow-right {
-  transform: translateX(3px);
 }
 
 .home-footer-card-text {
@@ -757,7 +735,7 @@ a.topbar-chip:focus {
 }
 
 .home-footer-meta span.topbar-chip:not(.topbar-chip-primary):hover {
-  border-color: #7fbcac;
+  border-color: #4e9a84;
   background: var(--kg-hover);
 }
 
@@ -785,7 +763,7 @@ a.topbar-chip:focus {
 .template-thumb-card:hover {
   box-shadow: var(--kg-shadow-md);
   transform: translateY(-2px);
-  border-color: #7fbcac;
+  border-color: #4e9a84;
 }
 
 .template-thumb-link {
@@ -836,7 +814,7 @@ a.topbar-chip:focus {
 .contributor-card:hover {
   box-shadow: var(--kg-shadow-md);
   transform: translateY(-2px);
-  border-color: #7fbcac;
+  border-color: #4e9a84;
   color: inherit;
 }
 
@@ -976,7 +954,7 @@ a.topbar-chip:focus {
 
 .merge-file-add-tile:hover {
   background: var(--kg-hover);
-  border-color: #7fbcac;
+  border-color: #4e9a84;
 }
 
 /* ---------------- Front page generator ---------------- */

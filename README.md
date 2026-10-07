@@ -14,7 +14,6 @@ This is a student-made project and is **not** an official college resource.
 | Readymade Pages | `readymade/` | Browse and download pre-made front page templates without building one from scratch. *(Coming soon.)* |
 | MultiMerge | `multimerge/` | Group PDFs, reorder pages by dragging, and export each group as one merged PDF with a custom or default file name. |
 | Topsheet | `topsheet/` | Generate mark-tabulation top sheets for internal examinations, for teachers. *(Coming soon.)* |
-| Contributors | `contributors/` | Lists everyone who has contributed code, pulled live from the GitHub API. |
 
 ## Project layout
 
@@ -25,7 +24,6 @@ settings/                     Local data management (students, layouts, subjects
 readymade/                    Readymade templates (placeholder)
 multimerge/                   PDF merging tool
 topsheet/                     Mark-tabulation top sheets for teachers (placeholder)
-contributors/                 GitHub contributors list, fetched live from the GitHub API
 lib/                          Shared browser modules (storage, users, subjects, layouts, PDF export, navbar, UI helpers)
 data/                         Static JSON data (subjects list, default layout, saved layouts, emblem/logo assets)
 assets/                       Shared stylesheet and generated version metadata
