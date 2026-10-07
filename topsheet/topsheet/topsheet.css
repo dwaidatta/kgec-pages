@@ -361,6 +361,18 @@
   gap: 2mm;
 }
 
+/* the block overlaps the feedback fields above it; only its own text takes clicks */
+.ts-sigs,
+.ts-sigs * {
+  pointer-events: none;
+}
+
+.ts-sigs [contenteditable],
+.ts-sigs .ts-sig-img,
+.ts-sigs .ts-seal-img {
+  pointer-events: auto;
+}
+
 .ts-sigs-row {
   display: flex;
 
