@@ -978,7 +978,6 @@ a.topbar-chip:focus {
   height: 297mm;
   transform-origin: top left;
   background: #fff;
-  border: 1px solid var(--kg-border);
   box-shadow: var(--kg-shadow-md);
   flex-shrink: 0;
 }
