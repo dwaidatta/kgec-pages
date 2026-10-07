@@ -7,7 +7,7 @@
 import { renderNavbar } from "../lib/navbar.js";
 import { showToast } from "../lib/ui.js";
 import { extractMainSignature as processImage } from "../lib/signature-extract.js";
-import { activateStudentFlow } from "./student.js";
+import { activateStudentFlow } from "./student/pdf-annotator.js";
 
 // Default sheet content (texts, text formats, page settings, rubrics and
 // marks rows) lives in data/topsheet_default_layout.json, like the front

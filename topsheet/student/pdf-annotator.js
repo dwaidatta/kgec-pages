@@ -4,12 +4,12 @@
  * Fully client-side (pdf.js to show pages, pdf-lib to write the result).
  */
 
-import { showToast } from "../lib/ui.js";
-import { preloadSignatureEngine } from "../lib/signature-extract.js";
-import { openSignaturePicker } from "../lib/signature-picker.js";
-import { listSavedSignatures, listUnlinkedSignatures, saveSignature, removeSavedSignature } from "../lib/saved-signatures.js";
-import { loadUsers, USER_FIELDS } from "../lib/users.js";
-import { linkBadge, populateStudentSelect } from "../lib/student-link.js";
+import { showToast } from "../../lib/ui.js";
+import { preloadSignatureEngine } from "../../lib/signature-extract.js";
+import { openSignaturePicker } from "../../lib/signature-picker.js";
+import { listSavedSignatures, listUnlinkedSignatures, saveSignature, removeSavedSignature } from "../../lib/saved-signatures.js";
+import { loadUsers, USER_FIELDS } from "../../lib/users.js";
+import { linkBadge, populateStudentSelect } from "../../lib/student-link.js";
 
 const PDFJS_WORKER = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 

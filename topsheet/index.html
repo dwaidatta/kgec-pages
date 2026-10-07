@@ -41,19 +41,6 @@
     }
 
 
-    /* ROLE CHOOSER */
-
-    .ts-role-card {
-      cursor: pointer;
-      transition: border-color .15s ease, transform .15s ease;
-    }
-
-    .ts-role-card:hover,
-    .ts-role-card:focus-visible {
-      border-color: var(--bs-primary);
-      transform: translateY(-2px);
-    }
-
     /* STUDENT PDF ANNOTATOR */
 
     .st-pages {
@@ -240,9 +227,25 @@
       background: #fff;
     }
 
-    .ts-role-icon {
-      font-size: 1.75rem;
-      color: var(--bs-primary);
+    /* The shared feature-card is height:100%; under a heading that overflows
+       the column, so let the card fill the space left below the heading. */
+    #role-chooser section {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #role-chooser .feature-card {
+      height: auto;
+      flex: 1 1 auto;
+    }
+
+    .ts-col-heading {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding-bottom: .4rem;
+      margin-bottom: .75rem;
+      border-bottom: 2px solid var(--bs-primary);
     }
 
 
@@ -319,9 +322,9 @@
 
   <!-- ROLE CHOOSER -->
 
-  <main id="role-chooser" class="container py-5">
+  <main id="role-chooser" class="container py-4">
 
-    <div class="text-center mb-4">
+    <div class="text-center mb-3">
 
       <h1 class="h3 fw-bold">What do you want to do?</h1>
 
@@ -332,54 +335,46 @@
 
     <div class="row g-3 justify-content-center">
 
-      <div class="col-12 col-md-5 col-lg-4">
+      <!-- Teacher column -->
 
-        <button
-          type="button"
-          class="card ts-role-card w-100 text-start"
-          data-role="teacher"
-        >
+      <section class="col-12 col-md-6 col-lg-4" aria-labelledby="ts-col-teacher">
 
-          <div class="card-body">
+        <h2 class="h5 fw-bold ts-col-heading" id="ts-col-teacher">
+          <i class="bi bi-person-workspace"></i>
+          Teacher
+        </h2>
 
-            <i class="bi bi-person-workspace ts-role-icon"></i>
-
-            <h2 class="h5 mt-2">I'm a teacher</h2>
-
-            <p class="small text-muted mb-0">
-              Make a front page (topsheet) for your class.
-            </p>
-
+        <a href="#teacher" class="feature-card" data-role="teacher">
+          <div class="feature-card-top">
+            <span class="feature-icon icon-amber"><i class="bi bi-clipboard-data"></i></span>
           </div>
+          <h5>Topsheet maker</h5>
+          <p>Make a front page (topsheet) for your class from a CSV of students and their signatures.</p>
+          <span class="feature-link">Open <i class="bi bi-arrow-right"></i></span>
+        </a>
 
-        </button>
-
-      </div>
+      </section>
 
 
-      <div class="col-12 col-md-5 col-lg-4">
+      <!-- Student column -->
 
-        <button
-          type="button"
-          class="card ts-role-card w-100 text-start"
-          data-role="student"
-        >
+      <section class="col-12 col-md-6 col-lg-4" aria-labelledby="ts-col-student">
 
-          <div class="card-body">
+        <h2 class="h5 fw-bold ts-col-heading" id="ts-col-student">
+          <i class="bi bi-mortarboard"></i>
+          Student
+        </h2>
 
-            <i class="bi bi-mortarboard ts-role-icon"></i>
-
-            <h2 class="h5 mt-2">I'm a student</h2>
-
-            <p class="small text-muted mb-0">
-              Fill the topsheet given by your teacher.
-            </p>
-
+        <a href="#student" class="feature-card" data-role="student">
+          <div class="feature-card-top">
+            <span class="feature-icon icon-green"><i class="bi bi-pencil-square"></i></span>
           </div>
+          <h5>PDF annotator</h5>
+          <p>Got a PDF from your teacher? Add your name, roll number, signature or any other details right on it, then download the filled PDF.</p>
+          <span class="feature-link">Open <i class="bi bi-arrow-right"></i></span>
+        </a>
 
-        </button>
-
-      </div>
+      </section>
 
     </div>
 

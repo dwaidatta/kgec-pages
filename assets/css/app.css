@@ -1,7 +1,10 @@
 /* KGEC Pages — shared design system (Bootstrap 5.3 variable overrides + custom styles)
    Theme: Green + Blue (dual-accent, high-contrast neutrals) */
 
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap");
+
 :root {
+  --bs-body-font-family: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
   --bs-primary: #047857;
   --bs-primary-rgb: 4, 120, 87;
   --bs-secondary: #1d4ed8;
