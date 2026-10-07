@@ -1980,14 +1980,6 @@ function bindRoleChooser() {
     });
   });
 
-  document.querySelectorAll("[data-role-back]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      history.pushState(null, "", location.pathname + location.search);
-
-      showRole(null);
-    });
-  });
-
   window.addEventListener("hashchange", () => {
     showRole(location.hash.slice(1));
   });
