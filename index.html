@@ -14,9 +14,9 @@
   <div id="navbar-root"></div>
   <main class="container py-5">
     <header class="hero text-center mx-auto mb-5">
-      <span class="hero-badge"><i class="bi bi-mortarboard-fill"></i> Student-made toolkit</span>
+      <span class="hero-badge"><i class="bi bi-mortarboard-fill"></i> Enthusiast-made toolkit</span>
       <h1 class="fw-bold mt-3">KGEC Pages</h1>
-      <p class="text-muted fs-5 mb-0">Create assignment front pages and manage your submissions, made by students, not an official college resource.</p>
+      <p class="text-muted fs-5 mb-0">Create assignment front pages and manage your submissions, made by enthusiast students, not an official college resource.</p>
     </header>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
@@ -83,14 +83,16 @@
     </div>
 
     <div class="home-footer">
-      <div class="home-footer-card home-footer-credit">
-        <span class="feature-icon icon-amber"><i class="bi bi-lightbulb-fill"></i></span>
-        <span class="home-footer-card-text">Concept by <strong>Dwaipayan Datta</strong></span>
-      </div>
-
-      <section class="home-contributors w-100">
-        <h5 class="text-center mb-3"><i class="bi bi-people"></i> Contributors</h5>
-        <div id="contributors-container" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3"></div>
+      <section class="credits w-100" aria-labelledby="credits-heading">
+        <div class="credits-head text-center">
+          <h2 id="credits-heading" class="credits-title">The people behind KGEC Pages</h2>
+          <p class="credits-subtitle mb-0">Who had the idea, who wrote the code, and who it is for.</p>
+        </div>
+        <div class="credits-stage" id="credits-stage" aria-roledescription="carousel"></div>
+        <div class="credits-controls">
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="credits-prev" aria-label="Previous card"><i class="bi bi-chevron-left"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="credits-next" aria-label="Next card"><i class="bi bi-chevron-right"></i></button>
+        </div>
       </section>
 
       <div class="home-footer-meta" id="home-meta"></div>

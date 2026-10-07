@@ -668,53 +668,6 @@ a.topbar-chip:focus {
   border: 1px solid var(--kg-border);
 }
 
-.home-footer-cards {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  justify-content: center;
-  gap: 1rem;
-  width: 100%;
-}
-
-.home-footer-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.85rem;
-  flex: 1 1 300px;
-  max-width: 420px;
-  padding: 0.85rem 1.25rem;
-  background: var(--kg-surface);
-  border: 1px solid var(--kg-border);
-  border-radius: var(--bs-border-radius-lg);
-  box-shadow: var(--kg-shadow-sm);
-}
-
-.home-footer-card-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  text-align: left;
-}
-
-.home-footer-card-text strong {
-  font-size: 0.95rem;
-}
-
-.home-footer-card-text span {
-  font-size: 0.8rem;
-  color: var(--kg-muted);
-}
-
-.home-footer-credit .home-footer-card-text {
-  justify-content: center;
-}
-
-.home-footer-credit .home-footer-card-text strong {
-  color: var(--bs-primary);
-  font-size: 1rem;
-}
-
 .home-footer-meta {
   display: flex;
   flex-wrap: wrap;
@@ -793,43 +746,85 @@ a.topbar-chip:focus {
   font-size: 0.92rem;
 }
 
-/* Contributors */
+/* Credits carousel */
 
-.contributor-card {
+.credits-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.credits-subtitle {
+  color: var(--kg-muted);
+}
+
+.credits-stage {
+  position: relative;
+  height: 21rem;
+  margin: 0.5rem auto;
+  max-width: 52rem;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.credit-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(20rem, 72%);
+  margin-top: -8.5rem;
+  height: 17rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  height: 100%;
-  padding: 1.25rem 0.75rem;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1.25rem;
   background: var(--kg-surface);
   border: 1px solid var(--kg-border);
   border-radius: var(--bs-border-radius-lg);
-  text-decoration: none;
-  color: inherit;
-  text-align: center;
-  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  box-shadow: var(--kg-shadow-sm);
+  cursor: pointer;
+  transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
-.contributor-card:hover {
+.credit-card.is-active {
+  border-color: var(--bs-primary);
   box-shadow: var(--kg-shadow-md);
-  transform: translateY(-2px);
-  border-color: #4e9a84;
-  color: inherit;
+  cursor: default;
 }
 
-.contributor-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  border: 2px solid var(--kg-border);
-  object-fit: cover;
-}
-
-.contributor-name {
+.credit-label {
+  font-size: 0.75rem;
   font-weight: 600;
-  font-size: 0.9rem;
-  overflow-wrap: anywhere;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kg-muted);
+  margin-top: 0.4rem;
+}
+
+.credit-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--bs-primary);
+}
+
+.credit-desc {
+  font-size: 0.85rem;
+  color: var(--kg-muted);
+  margin: 0;
+}
+
+.credits-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .credit-card {
+    transition: none;
+  }
 }
 
 /* ---------------- MultiMerge ---------------- */

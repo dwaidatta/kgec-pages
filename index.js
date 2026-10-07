@@ -36,78 +36,92 @@ async function initHomeMeta() {
   }
 }
 
-const REPO = "dwaidatta/kgec-pages";
+const AUTOPLAY_MS = 3500;
+const VISIBLE_RANGE = 2;
 
-loadAndRender();
+let credits = [];
+let active = 0;
+let timer = null;
 
-async function loadAndRender() {
-  const container = document.getElementById("contributors-container");
-  renderState(container, "loading");
+async function loadCredits() {
+  const stage = document.getElementById("credits-stage");
+  if (!stage) return;
 
   try {
-    const res = await fetch(`https://api.github.com/repos/${REPO}/contributors?per_page=100`);
-    if (!res.ok) throw new Error(`GitHub API responded with ${res.status}`);
+    const res = await fetch("assets/config/credits.json");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
 
-    const contributors = (await res.json()).filter((c) => c.type === "User");
-    if (contributors.length === 0) {
-      renderState(container, "empty");
-      return;
-    }
-    renderContributors(container, contributors);
+    credits = data.cards || [];
+    if (credits.length === 0) return;
+
+    stage.innerHTML = credits
+      .map(
+        (c, i) => `
+          <article class="credit-card" data-index="${i}">
+            <span class="feature-icon icon-${escapeHtml(c.tone || "green")}"><i class="bi ${escapeHtml(c.icon || "bi-star-fill")}"></i></span>
+            <span class="credit-label">${escapeHtml(c.label || "")}</span>
+            <h3 class="credit-name">${escapeHtml(c.name || "")}</h3>
+            <p class="credit-desc">${escapeHtml(c.description || "")}</p>
+          </article>
+        `
+      )
+      .join("");
+
+    stage.querySelectorAll(".credit-card").forEach((card) => {
+      card.addEventListener("click", () => goTo(Number(card.dataset.index)));
+    });
+    document.getElementById("credits-prev").addEventListener("click", () => goTo(active - 1));
+    document.getElementById("credits-next").addEventListener("click", () => goTo(active + 1));
+    stage.addEventListener("mouseenter", stopAutoplay);
+    stage.addEventListener("mouseleave", startAutoplay);
+
+    layoutCredits();
+    startAutoplay();
   } catch (err) {
-    console.error("Failed to load contributors:", err);
-    renderState(container, "error");
+    console.error("Failed to load credits:", err);
+    document.querySelector(".credits")?.remove();
   }
 }
 
-function renderContributors(container, contributors) {
-  container.innerHTML = contributors
-    .map(
-      (c) => `
-        <div class="col">
-          <a class="contributor-card" href="${escapeHtml(c.html_url)}" target="_blank" rel="noopener">
-            <img src="${escapeHtml(c.avatar_url)}" alt="${escapeHtml(c.login)}" class="contributor-avatar" loading="lazy">
-            <div class="contributor-name">${escapeHtml(c.login)}</div>
-          </a>
-        </div>
-      `
-    )
-    .join("");
+function goTo(index) {
+  active = (index + credits.length) % credits.length;
+  layoutCredits();
+  startAutoplay();
 }
 
-function renderState(container, state) {
-  const states = {
-    loading: `
-      <div class="col-12 text-center text-muted py-5">
-        <div class="spinner-border text-primary mb-2" role="status"><span class="visually-hidden">Loading…</span></div>
-        <p class="mb-0">Loading contributors…</p>
-      </div>
-    `,
-    error: `
-      <div class="col-12">
-        <div class="empty-state">
-          <i class="bi bi-exclamation-triangle empty-state-icon"></i>
-          <h5>Couldn't load contributors</h5>
-          <p class="mb-3">GitHub's API might be rate-limiting or unreachable right now.</p>
-          <button type="button" class="btn btn-primary" id="retry-contributors">Try again</button>
-        </div>
-      </div>
-    `,
-    empty: `
-      <div class="col-12">
-        <div class="empty-state">
-          <i class="bi bi-people empty-state-icon"></i>
-          <h5>No contributors found</h5>
-        </div>
-      </div>
-    `,
-  };
+// Shortest signed distance from the active card, so the stack wraps around endlessly.
+function offsetFor(index) {
+  const n = credits.length;
+  let d = (index - active) % n;
+  if (d > n / 2) d -= n;
+  if (d < -n / 2) d += n;
+  return d;
+}
 
-  container.innerHTML = states[state] || "";
+function layoutCredits() {
+  document.querySelectorAll(".credit-card").forEach((card, i) => {
+    const d = offsetFor(i);
+    const dist = Math.abs(d);
+    const hidden = dist > VISIBLE_RANGE;
 
-  if (state === "error") {
-    document.getElementById("retry-contributors").addEventListener("click", loadAndRender);
-  }
+    card.style.transform = `translateX(calc(-50% + ${d * 34}%)) scale(${1 - dist * 0.14})`;
+    card.style.opacity = hidden ? 0 : 1 - dist * 0.35;
+    card.style.zIndex = 10 - dist;
+    card.style.pointerEvents = hidden ? "none" : "";
+    card.classList.toggle("is-active", d === 0);
+    card.setAttribute("aria-hidden", d === 0 ? "false" : "true");
+  });
+}
+
+function startAutoplay() {
+  stopAutoplay();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  timer = setInterval(() => goTo(active + 1), AUTOPLAY_MS);
+}
+
+function stopAutoplay() {
+  clearInterval(timer);
 }
 
 function escapeHtml(str) {
@@ -120,4 +134,4 @@ function escapeHtml(str) {
 
 init();
 initHomeMeta();
-loadAndRender();
+loadCredits();
