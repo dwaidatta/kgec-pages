@@ -268,6 +268,60 @@ a.topbar-chip:focus {
   background: var(--kg-hover);
 }
 
+/* "More" menu: a dropup wrapper that sizes like the other nav items. */
+.bottom-nav-more {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.bottom-nav-more > .bottom-nav-link {
+  flex: 1 1 auto;
+}
+
+.bottom-nav-menu {
+  --bs-dropdown-padding-x: 0.4rem;
+  --bs-dropdown-padding-y: 0.4rem;
+  --bs-dropdown-border-radius: 1.25rem;
+  --bs-dropdown-inner-border-radius: 0.85rem;
+  --bs-dropdown-link-hover-bg: var(--kg-hover);
+  --bs-dropdown-link-active-bg: var(--kg-hover);
+  --bs-dropdown-link-active-color: var(--bs-primary);
+  min-width: 11rem;
+  margin-bottom: 0.6rem !important;
+  border-color: var(--kg-border);
+  box-shadow: 0 2px 8px rgba(10, 55, 60, 0.12);
+}
+
+/* Items reuse the nav-link look: muted text, primary + tinted pill on hover. */
+.bottom-nav-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  color: var(--kg-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.bottom-nav-menu .dropdown-item i {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.bottom-nav-menu .dropdown-item:hover,
+.bottom-nav-menu .dropdown-item:focus-visible,
+.bottom-nav-menu .dropdown-item.active {
+  color: var(--bs-primary);
+  background: var(--kg-hover);
+}
+
+.bottom-nav-menu li + li {
+  margin-top: 0.15rem;
+}
+
 @media (max-width: 400px) {
   .bottom-nav-inner {
     height: 3.1rem;
@@ -1033,4 +1087,62 @@ a.topbar-chip:focus {
   .generator-preview {
     padding: 1rem 0.5rem;
   }
+}
+
+/* Round delete button pinned to the corner of a signature tile. */
+.sig-del {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Signature adjustment panel: big, easy-to-grab controls */
+.sig-adjust {
+  background: #fff;
+}
+.sig-adjust .form-range {
+  height: 2.25rem;
+  touch-action: pan-y;
+}
+.sig-adjust .form-range::-webkit-slider-runnable-track {
+  height: 0.5rem;
+}
+.sig-adjust .form-range::-moz-range-track {
+  height: 0.5rem;
+}
+.sig-adjust .form-range::-webkit-slider-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: -0.5rem;
+}
+.sig-adjust .form-range::-moz-range-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.sig-adjust .form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-left: 0;
+  min-height: 2.25rem;
+}
+.sig-adjust .form-check-input {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  float: none;
+}
+.sig-adjust .form-check-label {
+  cursor: pointer;
 }

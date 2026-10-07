@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Topsheet</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,700;1,400&display=swap"
+    rel="stylesheet"
+  >
+  <link href="./topsheet.css" rel="stylesheet">
+  <style>
+    html,
+    body {
+      margin: 0;
+      background: transparent;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div
+    class="ts-doc ts-editable"
+    id="ts-preview"
+  >
+
+
+    <!-- HEADER -->
+
+    <div class="ts-header">
+
+      <div
+        class="ts-title-line"
+        data-field="examinationTitle" data-key="examinationTitle"
+        contenteditable="true"
+        spellcheck="false"
+      ></div>
+
+
+      <div
+        class="ts-subtitle-line"
+        data-field="examinationSubtitle" data-key="examinationSubtitle"
+        contenteditable="true"
+        spellcheck="false"
+      ></div>
+
+
+      <div class="ts-college-line" data-key="collegeLine">
+
+        <span data-label data-key="collegeLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+        <span
+          data-field="collegeCode" data-key="collegeCode"
+          contenteditable="true"
+          spellcheck="false"
+        ></span>,
+
+        &nbsp;
+
+        <span
+          data-field="collegeName" data-key="collegeName"
+          contenteditable="true"
+          spellcheck="false"
+        ></span>
+
+      </div>
+
+    </div>
+
+
+    <!-- INFORMATION TABLE -->
+
+    <table class="ts-info-table">
+
+      <tbody>
+
+        <tr>
+
+          <td>
+
+            <span data-label data-key="programmeLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="programme" data-key="programme"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+
+          <td>
+
+            <span data-label data-key="semesterLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="semester" data-key="semester"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+        </tr>
+
+
+        <tr>
+
+          <td>
+
+            <span data-label data-key="subjectLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="subject" data-key="subject"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+
+          <td>
+
+            <span data-label data-key="courseCodeLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="courseCode" data-key="courseCode"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+        </tr>
+
+
+        <tr>
+
+          <td>
+
+            <span data-label data-key="upidLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="upid" data-key="upid"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+
+          <td>
+
+            <span data-label data-key="examDateLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="examDate" data-key="examDate"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+        </tr>
+
+
+        <tr>
+
+          <td>
+
+            <span data-label data-key="studentNameLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span class="ts-sf ts-student-name ts-ph">
+              student name
+            </span>
+
+          </td>
+
+
+          <td>
+
+            <span data-label data-key="rollLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span class="ts-sf ts-student-roll ts-ph">
+              student roll number
+            </span>
+
+          </td>
+
+        </tr>
+
+
+        <tr>
+
+          <td>
+
+            <span data-label data-key="teacherNameLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="teacherName" data-key="teacherName"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+
+          <td>
+
+            <span data-label data-key="teacherPhoneLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="teacherPhone" data-key="teacherPhone"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+        </tr>
+
+
+        <tr>
+
+          <td>
+
+            <span data-label data-key="fullMarksLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="fullMarks" data-key="fullMarks"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+
+          <td>
+
+            <span data-label data-key="durationLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+            <span
+              data-field="duration" data-key="duration"
+              contenteditable="true"
+              spellcheck="false"
+            ></span>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+
+    <!-- ASSESSMENT RUBRICS -->
+
+    <p class="ts-sec-lbl">
+      <span data-label data-key="rubricsHeading" contenteditable="true" spellcheck="false"></span>
+    </p>
+
+
+    <table class="ts-rubrics-table">
+
+      <thead>
+
+        <tr>
+
+          <th class="ts-rb-letter"></th>
+
+          <th class="ts-rb-criteria">
+            <span data-label data-key="rbHeadCriteria" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th>
+            <span data-label data-key="rbHead1" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th>
+            <span data-label data-key="rbHead2" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th>
+            <span data-label data-key="rbHead3" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th>
+            <span data-label data-key="rbHead4" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody id="ts-rubrics-body">
+        <!-- Filled by index.js -->
+      </tbody>
+
+    </table>
+
+
+    <!-- MARKS TABULATION -->
+
+    <p class="ts-sec-lbl">
+      <span data-label data-key="marksHeading" contenteditable="true" spellcheck="false"></span>
+    </p>
+
+
+    <table class="ts-marks-table">
+
+      <thead>
+
+        <tr>
+
+          <th class="ts-qno">
+            <span data-label data-key="mkHeadQno" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th class="ts-allotted">
+            <span data-label data-key="mkHeadAllotted" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th class="ts-awarded">
+            <span data-label data-key="mkHeadAwarded" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th class="ts-co">
+            <span data-label data-key="mkHeadCo" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th class="ts-bloom">
+            <span data-label data-key="mkHeadBloom" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+          <th class="ts-remarks">
+            <span data-label data-key="mkHeadRemarks" contenteditable="true" spellcheck="false"></span>
+          </th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody id="ts-marks-body">
+        <!-- Filled by index.js -->
+      </tbody>
+
+    </table>
+
+
+    <!-- EXAMINER FEEDBACK -->
+
+    <div class="ts-feedback">
+
+      <span class="ts-fb-lbl">
+        <span data-label data-key="feedbackHeading" contenteditable="true" spellcheck="false"></span>
+      </span>
+
+      <br>
+
+
+      <span class="ts-fb-line">
+
+        <span data-label data-key="strengthsLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+        <span
+          data-field="feedbackStrengths" data-key="feedbackStrengths"
+          contenteditable="true"
+          spellcheck="false"
+        ></span>
+
+      </span>
+
+      <br>
+
+
+      <span class="ts-fb-line">
+
+        <span data-label data-key="improvementsLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+        <span
+          data-field="feedbackImprovements" data-key="feedbackImprovements"
+          contenteditable="true"
+          spellcheck="false"
+        ></span>
+
+      </span>
+
+      <br>
+
+
+      <span class="ts-fb-line">
+
+        <span data-label data-key="correctiveLabel" contenteditable="true" spellcheck="false"></span>&nbsp;
+
+        <span
+          data-field="feedbackCorrective" data-key="feedbackCorrective"
+          contenteditable="true"
+          spellcheck="false"
+        ></span>
+
+      </span>
+
+    </div>
+
+
+    <!-- SIGNATURES -->
+
+    <div class="ts-sigs">
+
+
+      <!-- ROW 1 -->
+
+      <div
+        class="ts-sigs-row"
+        style="margin-bottom: 6mm;"
+      >
+
+        <div class="ts-sig-left">
+
+          <p class="ts-review-text">
+
+            <span data-label data-key="reviewText" contenteditable="true" spellcheck="false"></span>
+
+          </p>
+
+        </div>
+
+
+        <div class="ts-sig-right">
+
+          <div class="ts-sig-img-area">
+
+            <img
+              class="ts-sig-img ts-teacher-sig"
+              src=""
+              alt=""
+              style="display:none;"
+            >
+
+          </div>
+
+
+          <p class="ts-sig-lbl">
+
+            <span data-label data-key="examinerSigLabel" contenteditable="true" spellcheck="false"></span>
+
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- ROW 2 -->
+
+      <div class="ts-sigs-row">
+
+
+        <div class="ts-sig-left">
+
+          <div class="ts-sig-img-area">
+
+            <img
+              class="ts-sig-img ts-student-sig"
+              src=""
+              alt=""
+              style="display:none;"
+            >
+
+          </div>
+
+
+          <p class="ts-sig-lbl">
+
+            <span data-label data-key="studentSigLabel" contenteditable="true" spellcheck="false"></span>
+
+          </p>
+
+        </div>
+
+
+        <div class="ts-sig-right">
+
+          <img
+            class="ts-seal-img ts-college-seal"
+            src=""
+            alt=""
+            style="display:none;"
+          >
+
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+</body>
+
+</html>

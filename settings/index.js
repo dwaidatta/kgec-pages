@@ -4,6 +4,13 @@ import { showToast, confirmAndRun, bindSelectAll } from "../lib/ui.js";
 import { getDefaultLayout, getStoredDefaultLayout } from "../lib/default-layout.js";
 import { refreshSubjects } from "../lib/subjects.js";
 import { loadUsers, saveUsers, generateUserId, USER_FIELDS } from "../lib/users.js";
+import {
+  listSignaturesForUser,
+  listUnlinkedSignatures,
+  linkSignature,
+  removeSavedSignature,
+} from "../lib/saved-signatures.js";
+import { populateStudentSelect } from "../lib/student-link.js";
 renderNavbar("../", "settings");
 
 // ---------- USERS ----------
@@ -40,9 +47,23 @@ function renderUsers() {
             </button>
           </div>
           ${fieldsHtml}
+          <div class="small text-muted mt-3 mb-1">
+            <i class="bi bi-pen"></i> Signatures
+            <span class="badge rounded-pill text-bg-primary ms-1 user-sig-count">0</span>
+          </div>
+          <div class="d-flex flex-wrap gap-3 pt-2 pe-2 user-sigs"></div>
         </div>
       </div>
     `;
+
+    const sigs = listSignaturesForUser(user.id);
+    col.querySelector(".user-sig-count").textContent = sigs.length;
+    const sigBox = col.querySelector(".user-sigs");
+    if (sigs.length === 0) {
+      sigBox.innerHTML = '<span class="small text-muted">None linked yet. Link one from the Signature Extractor.</span>';
+    } else {
+      sigBox.replaceChildren(...sigs.map((s) => signatureThumb(s)));
+    }
 
     USER_FIELDS.forEach((f) => {
       col.querySelector(`.field-${f.key}`).addEventListener("input", (e) => {
@@ -56,6 +77,35 @@ function renderUsers() {
 
     container.appendChild(col);
   });
+
+  // Student list changes affect which signatures count as unlinked.
+  renderUnlinkedSignatures();
+}
+
+// Small signature preview with a delete button.
+function signatureThumb(sig) {
+  const wrap = document.createElement("div");
+  wrap.className = "border rounded p-1 bg-white text-center position-relative";
+  wrap.style.width = "110px";
+  wrap.innerHTML = `
+    <img alt="" style="max-width:100%;max-height:50px;">
+    <div class="small text-muted text-truncate sig-label"></div>
+    <button type="button" class="btn btn-danger sig-del" title="Delete signature">
+      <i class="bi bi-x"></i>
+    </button>
+  `;
+  wrap.querySelector("img").src = sig.dataUrl;
+  wrap.querySelector(".sig-label").textContent = sig.label;
+  wrap.querySelector("button").addEventListener("click", () => deleteSignature(sig.id));
+  return wrap;
+}
+
+async function deleteSignature(id) {
+  const done = await confirmAndRun("Delete this signature from this device?", () => {
+    removeSavedSignature(id);
+    renderUsers();
+  });
+  if (done) showToast("Signature deleted.", "success");
 }
 
 function updateUserField(id, key, value) {
@@ -64,6 +114,7 @@ function updateUserField(id, key, value) {
   if (!user) return;
   user[key] = value;
   saveUsers(users);
+  if (key === "name" || key === "roll") renderUnlinkedSignatures(); // keeps the link dropdowns current
 }
 
 async function addUserFromModal() {
@@ -146,6 +197,58 @@ async function clearUsers() {
     renderUsers();
   });
   if (done) showToast("Users storage cleared.", "success");
+}
+
+// ---------- UNLINKED SIGNATURES ----------
+
+function renderUnlinkedSignatures() {
+  const users = loadUsers();
+  const sigs = listUnlinkedSignatures(users);
+  const container = document.getElementById("unlinked-sig-list");
+
+  document.getElementById("unlinked-sig-count-badge").textContent = sigs.length;
+  document.getElementById("unlinked-sig-empty").classList.toggle("d-none", sigs.length !== 0);
+
+  container.replaceChildren(
+    ...sigs.map((sig) => {
+      const col = document.createElement("div");
+      col.className = "col-sm-6 col-lg-4";
+      col.innerHTML = `
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge text-bg-secondary">Unlinked</span>
+              <button type="button" class="btn btn-sm btn-outline-danger" title="Delete signature">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="border rounded p-2 mb-2 bg-white text-center">
+              <img alt="" style="max-width:100%;max-height:70px;">
+            </div>
+            <div class="small text-muted mb-2 sig-label"></div>
+            <select class="form-select form-select-sm" aria-label="Link to a student"></select>
+          </div>
+        </div>
+      `;
+      col.querySelector("img").src = sig.dataUrl;
+      col.querySelector(".sig-label").textContent = sig.label;
+
+      const select = col.querySelector("select");
+      populateStudentSelect(select, { unlinkedLabel: "Link to a student..." });
+      select.addEventListener("change", () => {
+        if (!select.value) return;
+        if (linkSignature(sig.id, select.value)) {
+          showToast("Signature linked.", "success");
+          renderUsers();
+        } else {
+          showToast("Could not link the signature.", "danger");
+        }
+      });
+
+      col.querySelector("button").addEventListener("click", () => deleteSignature(sig.id));
+      return col;
+    })
+  );
 }
 
 // ---------- DEFAULT LAYOUT ----------

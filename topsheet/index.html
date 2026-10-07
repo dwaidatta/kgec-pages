@@ -4,31 +4,1240 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
-  <title>Topsheet - KGEC Pages</title>
+  <title>Topsheet Maker - KGEC Pages</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    rel="stylesheet"
+  >
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,700;1,400&display=swap"
+    rel="stylesheet"
+  >
+
   <link href="../assets/css/app.css" rel="stylesheet">
+  <link href="./topsheet/topsheet.css" rel="stylesheet">
+
+  <style>
+
+    /* PAGE LAYOUT */
+
+    body.page-topsheet {
+      padding-bottom: 0;
+    }
+
+    /* Below the desktop breakpoint the sidebar is stacked under the preview;
+       keep its last card clear of the floating bottom nav. */
+    #flow-student .generator-sidebar {
+      padding-bottom: calc(var(--kg-bottombar-h) + 1rem);
+    }
+
+
+    /* ROLE CHOOSER */
+
+    .ts-role-card {
+      cursor: pointer;
+      transition: border-color .15s ease, transform .15s ease;
+    }
+
+    .ts-role-card:hover,
+    .ts-role-card:focus-visible {
+      border-color: var(--bs-primary);
+      transform: translateY(-2px);
+    }
+
+    /* STUDENT PDF ANNOTATOR */
+
+    .st-pages {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+      width: 100%;
+    }
+
+    .st-preview-col {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .st-hint {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .st-empty {
+      margin: auto;
+      max-width: 420px;
+      min-height: 40vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .st-empty-icon {
+      font-size: 3rem;
+      color: var(--bs-primary);
+    }
+
+    .st-howto {
+      display: inline-block;
+      padding-left: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .st-pages:empty {
+      display: none;
+    }
+
+    .st-page {
+      position: relative;
+      background: #fff;
+      box-shadow: var(--kg-shadow-md);
+      max-width: 100%;
+    }
+
+    .st-page canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .st-page.placing {
+      cursor: crosshair;
+    }
+
+    .st-item {
+      position: absolute;
+      outline: 1px dashed transparent;
+      touch-action: none;
+    }
+
+    .st-item:hover,
+    .st-item.selected {
+      outline-color: var(--bs-primary);
+    }
+
+    .st-item.selected {
+      z-index: 2;
+    }
+
+    .st-text {
+      font-family: Helvetica, Arial, sans-serif;
+      line-height: 1;
+      color: #000;
+      cursor: text;
+    }
+
+    .st-text .st-edit {
+      display: block;
+      white-space: pre;
+      min-width: 1ch;
+      outline: none;
+    }
+
+    .st-text.selected,
+    .st-text:hover {
+      outline-offset: 3px;
+    }
+
+    .st-grip {
+      position: absolute;
+      left: -3px;
+      bottom: 100%;
+      margin-bottom: 4px;
+      width: 22px;
+      height: 22px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      background: var(--bs-primary);
+      color: #fff;
+      font-size: 13px;
+      line-height: 1;
+      font-family: sans-serif;
+      cursor: move;
+      touch-action: none;
+    }
+
+    .st-item:hover .st-grip,
+    .st-item.selected .st-grip {
+      display: flex;
+    }
+
+    .st-sig {
+      cursor: move;
+    }
+
+    .st-sig img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .st-resize {
+      position: absolute;
+      right: -6px;
+      bottom: -6px;
+      width: 12px;
+      height: 12px;
+      background: var(--bs-primary);
+      border: 1px solid #fff;
+      border-radius: 2px;
+      cursor: nwse-resize;
+      display: none;
+    }
+
+    .st-item.selected .st-resize {
+      display: block;
+    }
+
+    .st-sig-chip {
+      width: 96px;
+      padding: 4px;
+      position: relative;
+    }
+
+    .st-sig-chip.active {
+      border-color: var(--bs-primary);
+    }
+
+    .st-sig-chip .badge {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .st-sig-chip .small {
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .st-sig-chip img {
+      max-width: 100%;
+      max-height: 40px;
+      background: #fff;
+    }
+
+    .ts-role-icon {
+      font-size: 1.75rem;
+      color: var(--bs-primary);
+    }
+
+
+    /* SIDEBAR STACK (same spacing as the flex-column gap-3 wrapper;
+       a class is used because d-flex would override the inline display toggle) */
+
+    .ts-sidebar-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+
+    /* IMAGE PREVIEWS IN SIDEBAR */
+
+    .ts-img-prev {
+      width: 100%;
+      max-height: 88px;
+
+      object-fit: contain;
+
+      border: 1px dashed var(--kg-border);
+      border-radius: 6px;
+
+      padding: 4px;
+
+      background: #f8fffe;
+
+      display: none;
+    }
+
+    .ts-img-prev.has-img {
+      display: block;
+    }
+
+
+    /* VALIDATION TABLE */
+
+    .ts-val-scroll {
+      max-height: 230px;
+      overflow-y: auto;
+    }
+
+
+    /* PROGRESS */
+
+    #pdf-progress {
+      display: none;
+    }
+
+
+    /* MARKS ROW ACTIONS */
+
+
+    #mark-row-number {
+      font-weight: 600;
+    }
+
+    #btn-remove-mark-row:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+
+
+  </style>
 </head>
+
+
 <body class="page-topsheet">
+
   <div id="navbar-root"></div>
 
-  <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
-      <div class="d-flex align-items-center flex-wrap gap-2">
-        <h1 class="mb-0">Topsheet</h1>
-        <span class="badge text-bg-light border">For Teachers</span>
-      </div>
-      <a href="../index.html" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+
+  <!-- ROLE CHOOSER -->
+
+  <main id="role-chooser" class="container py-5">
+
+    <div class="text-center mb-4">
+
+      <h1 class="h3 fw-bold">What do you want to do?</h1>
+
+      <p class="text-muted mb-0">Pick the option that fits you.</p>
+
     </div>
 
-    <div class="empty-state">
-      <i class="bi bi-clipboard-data empty-state-icon"></i>
-      <h5>Coming soon</h5>
-      <p class="mb-0">Mark tabulation topsheets for teachers aren't available yet.</p>
+
+    <div class="row g-3 justify-content-center">
+
+      <div class="col-12 col-md-5 col-lg-4">
+
+        <button
+          type="button"
+          class="card ts-role-card w-100 text-start"
+          data-role="teacher"
+        >
+
+          <div class="card-body">
+
+            <i class="bi bi-person-workspace ts-role-icon"></i>
+
+            <h2 class="h5 mt-2">I'm a teacher</h2>
+
+            <p class="small text-muted mb-0">
+              Make a front page (topsheet) for your class.
+            </p>
+
+          </div>
+
+        </button>
+
+      </div>
+
+
+      <div class="col-12 col-md-5 col-lg-4">
+
+        <button
+          type="button"
+          class="card ts-role-card w-100 text-start"
+          data-role="student"
+        >
+
+          <div class="card-body">
+
+            <i class="bi bi-mortarboard ts-role-icon"></i>
+
+            <h2 class="h5 mt-2">I'm a student</h2>
+
+            <p class="small text-muted mb-0">
+              Fill the topsheet given by your teacher.
+            </p>
+
+          </div>
+
+        </button>
+
+      </div>
+
     </div>
+
+  </main>
+
+
+  <!-- STUDENT FLOW -->
+
+  <div
+    class="generator-layout"
+    id="flow-student"
+    style="display:none;"
+  >
+
+    <div class="generator-preview custom-scroll">
+
+      <div class="st-preview-col">
+
+        <div
+          id="st-hint"
+          class="alert alert-info py-2 px-3 small mb-0 st-hint"
+          role="status"
+          style="display:none;"
+        ></div>
+
+        <div id="st-empty" class="st-empty text-center">
+
+          <i class="bi bi-file-earmark-pdf st-empty-icon"></i>
+
+          <h1 class="h4 mt-2">Fill your topsheet</h1>
+
+          <p class="text-muted mb-0">
+            Upload the PDF your teacher gave you.
+          </p>
+
+        </div>
+
+        <div id="st-pages" class="st-pages"></div>
+
+      </div>
+
+    </div>
+
+
+    <div class="generator-sidebar custom-scroll">
+
+      <div class="d-flex flex-column gap-3">
+
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary w-100"
+          data-role-back
+        >
+          <i class="bi bi-arrow-left"></i>
+          Change role
+        </button>
+
+
+        <div class="card">
+          <div class="card-header">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Step 1: Upload the topsheet
+          </div>
+          <div class="card-body d-flex flex-column gap-2">
+            <input
+              type="file"
+              id="st-pdf"
+              class="form-control form-control-sm"
+              accept="application/pdf,.pdf"
+            >
+            <div id="st-pdf-stat" class="small text-muted"></div>
+          </div>
+        </div>
+
+
+        <div class="card">
+          <div class="card-header">
+            <i class="bi bi-fonts"></i>
+            Step 2: Add your details
+          </div>
+          <div class="card-body d-flex flex-column gap-2">
+            <div>
+              <label class="form-label small mb-1" for="st-student">Fill from a saved student</label>
+              <select id="st-student" class="form-select form-select-sm"></select>
+              <div id="st-student-none" class="form-text d-none">
+                No saved students yet. Add one in
+                <a href="../settings/index.html">Settings</a>, or type your details as free text below.
+              </div>
+            </div>
+            <div id="st-student-fields" class="d-flex flex-wrap gap-2 pe-2"></div>
+            <div class="small text-muted">Or type anything you like:</div>
+            <button
+              type="button"
+              id="st-add-text"
+              class="btn btn-outline-primary"
+              disabled
+            >
+              <i class="bi bi-plus-lg"></i>
+              Add free text
+            </button>
+          </div>
+        </div>
+
+
+        <div class="card">
+          <div class="card-header">
+            <i class="bi bi-pen"></i>
+            Step 3: Add your signature
+          </div>
+          <div class="card-body d-flex flex-column gap-2">
+            <div id="st-sig-scope" class="small text-muted"></div>
+
+            <div
+              id="st-sig-list"
+              class="d-flex flex-wrap gap-3 pt-2 pe-2"
+            ></div>
+
+            <div id="st-sig-empty" class="small text-muted">
+              No saved signatures yet.
+            </div>
+
+            <button
+              type="button"
+              id="st-new-sig"
+              class="btn btn-outline-primary"
+            >
+              <i class="bi bi-image"></i>
+              Use a new signature (from an image)
+            </button>
+
+          </div>
+        </div>
+
+
+        <div class="card" id="st-item-card" style="display:none;">
+          <div class="card-header">
+            <i class="bi bi-sliders"></i>
+            Selected item
+          </div>
+          <div class="card-body d-flex flex-column gap-2">
+
+            <div>
+              <label class="form-label small mb-1" id="st-size-label">Font size</label>
+              <div class="input-group">
+                <button type="button" class="btn btn-outline-secondary" id="st-smaller" aria-label="Smaller">
+                  <i class="bi bi-dash-lg"></i>
+                </button>
+                <output class="form-control text-center" id="st-size-value"></output>
+                <button type="button" class="btn btn-outline-secondary" id="st-larger" aria-label="Larger">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="button" id="st-delete" class="btn btn-outline-danger">
+              <i class="bi bi-trash"></i>
+              Remove
+            </button>
+
+          </div>
+        </div>
+
+
+        <div class="card cta-card">
+          <div class="card-header">
+            <i class="bi bi-download"></i>
+            Step 4: Download
+          </div>
+          <div class="card-body d-flex flex-column gap-2">
+            <button
+              type="button"
+              id="st-download"
+              class="btn btn-success btn-lg w-100"
+              disabled
+            >
+              <i class="bi bi-download"></i>
+              Download filled PDF
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
+
+
+  <!-- TEACHER FLOW -->
+
+  <div
+    class="generator-layout"
+    id="flow-teacher"
+    style="display:none;"
+  >
+
+
+    <!-- A4 PREVIEW PANE -->
+
+    <div class="generator-preview custom-scroll">
+
+      <div class="a4-sheet-outer">
+
+        <div class="a4-sheet">
+
+          <iframe id="ts-frame" class="a4-frame" scrolling="no" src="./topsheet/topsheet.html"></iframe>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- SIDEBAR -->
+
+    <div class="generator-sidebar custom-scroll">
+
+      <div class="d-flex flex-column gap-3">
+
+
+        <!-- STEP 1 -->
+
+        <div id="sidebar-s1" class="ts-sidebar-stack">
+
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary w-100"
+            data-role-back
+          >
+            <i class="bi bi-arrow-left"></i>
+            Change role
+          </button>
+
+
+          <div
+            class="alert alert-info py-2 px-3 small mb-0"
+            role="alert"
+          >
+
+            <i class="bi bi-pencil"></i>
+
+            Click any text on the A4 preview to edit it directly.
+
+          </div>
+
+
+          <!-- TEACHER SIGNATURE -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-pen"></i>
+
+              Teacher / Examiner Signature
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <label class="form-label mb-0">
+
+                Upload signature image (JPG/PNG)
+
+              </label>
+
+
+              <input
+                type="file"
+                id="inp-teacher-sig"
+                class="form-control"
+                accept="image/*"
+              >
+
+
+              <img
+                id="prev-teacher-sig"
+                class="ts-img-prev"
+                alt="Teacher signature preview"
+              >
+
+
+              <div
+                id="stat-teacher-sig"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- COLLEGE SEAL -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-shield-check"></i>
+
+              College Seal
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <label class="form-label mb-0">
+
+                Upload seal image (JPG/PNG)
+
+              </label>
+
+
+              <input
+                type="file"
+                id="inp-college-seal"
+                class="form-control"
+                accept="image/*"
+              >
+
+
+              <img
+                id="prev-college-seal"
+                class="ts-img-prev"
+                alt="College seal preview"
+              >
+
+
+              <div
+                id="stat-college-seal"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- TEXT FORMAT -->
+
+          <div
+            class="card"
+            id="card-text-format"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-type"></i>
+
+              Text format
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <div
+                id="fmt-target"
+                class="small text-muted text-truncate"
+              ></div>
+
+
+              <div>
+
+                <label class="form-label small mb-1" for="fmt-size">Font size (pt)</label>
+
+                <input
+                  type="number"
+                  id="fmt-size"
+                  class="form-control"
+                  min="4"
+                  max="30"
+                  step="0.5"
+                >
+
+              </div>
+
+
+              <div class="d-flex gap-2">
+
+                <button type="button" id="fmt-bold" class="btn btn-sm btn-outline-secondary toggle-bold flex-fill" aria-label="Bold"><i class="bi bi-type-bold"></i></button>
+
+                <button type="button" id="fmt-italic" class="btn btn-sm btn-outline-secondary toggle-italic flex-fill" aria-label="Italic"><i class="bi bi-type-italic"></i></button>
+
+                <button type="button" id="fmt-underline" class="btn btn-sm btn-outline-secondary toggle-underline flex-fill" aria-label="Underline"><i class="bi bi-type-underline"></i></button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- MARKS ROW ACTIONS -->
+
+          <div
+            class="card"
+            id="card-mark-row-actions"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-table"></i>
+
+              Marks Row Actions
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <div
+                id="mark-row-number"
+                class="small text-muted"
+              >
+                Row 1
+              </div>
+
+
+              <button
+                id="btn-remove-mark-row"
+                type="button"
+                class="btn btn-outline-danger"
+              >
+
+                <i class="bi bi-trash3"></i>
+
+                Remove This Entire Row
+
+              </button>
+
+
+              <button
+                id="btn-add-mark-row-above"
+                type="button"
+                class="btn btn-outline-primary"
+              >
+
+                <i class="bi bi-arrow-up"></i>
+
+                Add New Row Above
+
+              </button>
+
+
+              <button
+                id="btn-add-mark-row-below"
+                type="button"
+                class="btn btn-outline-primary"
+              >
+
+                <i class="bi bi-arrow-down"></i>
+
+                Add New Row Below
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- CTA -->
+
+          <div class="card cta-card">
+
+            <div class="card-header">
+              <i class="bi bi-1-circle"></i>
+              Step 1 of 2: Common fields
+            </div>
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <p class="small text-muted mb-1">
+
+                Fill all fields on the A4 preview, upload teacher signature and college seal, then proceed to Step 2.
+
+              </p>
+
+
+              <button
+                id="btn-go-s2"
+                class="btn btn-primary btn-lg w-100"
+              >
+
+                <i class="bi bi-arrow-right-circle"></i>
+
+                Complete All Common Fields
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- STEP 2 -->
+
+        <div
+          id="sidebar-s2"
+          class="ts-sidebar-stack"
+          style="display:none;"
+        >
+
+
+          <!-- BACK -->
+
+          <button
+            id="btn-back-s1"
+            class="btn btn-sm btn-outline-secondary w-100"
+          >
+
+            <i class="bi bi-arrow-left"></i>
+
+            Back to Step 1
+
+          </button>
+
+
+          <!-- CSV -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-filetype-csv"></i>
+
+              Student CSV
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <p class="small text-muted mb-0">
+
+                Requires <code>name</code> and <code>roll</code> columns.
+                Additional columns are ignored.
+
+              </p>
+
+
+              <input
+                type="file"
+                id="inp-csv"
+                class="form-control"
+                accept=".csv"
+              >
+
+
+              <div
+                id="stat-csv"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- SIGNATURE FOLDER -->
+
+          <div class="card">
+
+            <div class="card-header">
+
+              <i class="bi bi-folder2-open"></i>
+
+              Signature Folder
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <p class="small text-muted mb-0">
+
+                File naming:
+                <code>FirstName_LastName_Roll.png</code>
+
+                <br>
+
+                e.g.
+                <code>Arpan_Biswas_101.png</code>
+
+              </p>
+
+
+              <input
+                type="file"
+                id="inp-sig-folder"
+                class="form-control"
+                webkitdirectory
+                multiple
+                accept="image/*"
+              >
+
+
+              <div
+                id="stat-folder"
+                class="small text-muted"
+              ></div>
+
+            </div>
+
+          </div>
+
+
+          <!-- VALIDATION -->
+
+          <div
+            class="card"
+            id="card-validation"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-check2-all"></i>
+
+              Validation Summary
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <div id="val-summary"></div>
+
+
+              <div class="ts-val-scroll custom-scroll">
+
+                <table
+                  class="table table-sm table-bordered mb-0"
+                  style="font-size:.71rem;"
+                >
+
+                  <thead class="table-light">
+
+                    <tr>
+
+                      <th>
+                        Roll
+                      </th>
+
+                      <th>
+                        Name
+                      </th>
+
+                      <th>
+                        Signature
+                      </th>
+
+                      <th>
+                        Status
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody id="val-table-body"></tbody>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- STUDENT PREVIEW -->
+
+          <div
+            class="card"
+            id="card-preview-sel"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-eye"></i>
+
+              Preview Student
+
+            </div>
+
+
+            <div class="card-body">
+
+              <select
+                id="sel-student"
+                class="form-select"
+              ></select>
+
+            </div>
+
+          </div>
+
+
+          <!-- GENERATE / EXPORT -->
+
+          <div
+            class="card cta-card"
+            id="card-generate"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+              <i class="bi bi-2-circle"></i>
+              Step 2 of 2: Generate and export
+            </div>
+
+            <div class="card-body d-flex flex-column gap-2">
+
+
+              <!-- PROGRESS -->
+
+              <div id="pdf-progress">
+
+                <div
+                  class="d-flex justify-content-between small mb-1"
+                >
+
+                  <span id="prog-label">
+                    Processing...
+                  </span>
+
+                  <span id="prog-pct">
+                    0%
+                  </span>
+
+                </div>
+
+
+                <div
+                  class="progress"
+                  style="height:6px;"
+                >
+
+                  <div
+                    class="progress-bar bg-primary"
+                    id="prog-bar"
+                    style="width:0%;transition:width .2s ease;"
+                  ></div>
+
+                </div>
+
+              </div>
+
+
+              <!-- GENERATE -->
+
+              <button
+                id="btn-generate"
+                class="btn btn-success btn-lg w-100"
+              >
+
+                <i class="bi bi-stack"></i>
+
+                Generate All Topsheets
+
+              </button>
+
+
+              <!-- PDF -->
+
+              <button
+                id="btn-export-pdf"
+                class="btn btn-primary btn-lg w-100"
+                disabled
+              >
+
+                <i class="bi bi-file-earmark-pdf"></i>
+
+                Export All as PDF
+
+              </button>
+
+
+              <!-- ZIP -->
+
+              <button
+                id="btn-export-zip"
+                class="btn btn-secondary btn-lg w-100"
+                disabled
+              >
+
+                <i class="bi bi-file-zip"></i>
+
+                Export All as PDFs (ZIP)
+
+              </button>
+
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- JAVASCRIPT LIBRARIES -->
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"
+  ></script>
+
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"
+  ></script>
+
+
+  <script
+    type="module"
+    src="./index.js"
+  ></script>
+
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script type="module" src="./index.js"></script>
 </html>

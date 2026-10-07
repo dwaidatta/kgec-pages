@@ -1,0 +1,478 @@
+/* Topsheet A4 document (rendered inside the preview iframe and the PDF export) */
+
+/* A4 TOPSHEET DOCUMENT */
+
+.ts-doc {
+  font-family: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+
+
+  color: #000;
+  background: #fff;
+
+  width: 210mm;
+  min-height: 297mm;
+
+  /* Margins, base font size and signature height come from the layout
+     (data/topsheet_default_layout.json), set inline by applyLayout. */
+  padding: var(--ts-m-top) var(--ts-m-right) calc(var(--ts-m-bottom) + var(--ts-sig-h)) var(--ts-m-left);
+
+  box-sizing: border-box;
+
+  line-height: 1.25;
+
+  position: relative;
+}
+
+
+/* HEADER */
+
+.ts-header {
+  text-align: center;
+  margin-bottom: 1.5mm;
+}
+
+.ts-title-line {
+  line-height: 1.35;
+
+  outline: none;
+}
+
+.ts-subtitle-line {
+  line-height: 1.3;
+
+  outline: none;
+}
+
+.ts-college-line {
+  margin-top: 1mm;
+}
+
+
+/* INFORMATION TABLE - SINGLE BORDER */
+
+.ts-info-table {
+  width: 100%;
+
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+
+  border: 1px solid #000 !important;
+
+  margin-bottom: 1.2mm;
+
+}
+
+.ts-info-table td {
+  border: 1px solid #000 !important;
+
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: #000 !important;
+
+  padding: .9mm 1.5mm;
+
+  width: 50%;
+
+  vertical-align: top;
+
+  box-shadow: none !important;
+}
+
+.ts-info-table [contenteditable],
+.ts-info-table .ts-sf {
+  outline: none;
+
+  display: inline;
+
+  min-width: 8mm;
+
+  cursor: text;
+}
+
+.ts-info-table [contenteditable]:focus {
+  background: rgba(4,120,87,.1);
+
+  border-radius: 2px;
+}
+
+
+/* SECTION LABEL */
+
+.ts-sec-lbl {
+
+  font-weight: bold;
+
+  margin: .8mm 0 .4mm;
+}
+
+
+/* ASSESSMENT RUBRICS - DOUBLE OUTER BORDER - SINGLE INTERNAL GRID */
+
+.ts-rubrics-table {
+  width: 100%;
+
+  /*
+    Separate borders are important here.
+    Using double borders on every cell causes
+    thick black bars when html2canvas renders
+    the table for PDF export.
+  */
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+
+  /* Double outer border */
+  border: 3px double #000 !important;
+
+  margin-bottom: 1.2mm;
+
+
+  table-layout: fixed;
+
+  background: #fff;
+
+  box-shadow: none !important;
+}
+
+/* Internal grid = single black line */
+.ts-rubrics-table th,
+.ts-rubrics-table td {
+  border: 0 !important;
+
+  border-right: 1px solid #000 !important;
+  border-bottom: 1px solid #000 !important;
+
+  border-color: #000 !important;
+
+  padding: .8mm 1mm;
+
+  vertical-align: top;
+
+  box-shadow: none !important;
+}
+
+/* Do not add a second right border to the outside edge */
+.ts-rubrics-table th:last-child,
+.ts-rubrics-table td:last-child {
+  border-right: 0 !important;
+}
+
+/* Do not add another bottom border to the outside edge */
+.ts-rubrics-table tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.ts-rubrics-table thead th {
+  font-weight: bold;
+
+  text-align: center;
+}
+
+.ts-rb-letter {
+  width: 14px;
+
+  text-align: center;
+
+  font-weight: bold;
+}
+
+.ts-rb-criteria {
+  width: 17%;
+
+  font-weight: bold;
+}
+
+
+/* RUBRIC CONTENT */
+
+.ts-rubric-content {
+  display: block;
+
+  min-height: 12mm;
+
+  line-height: 1.3;
+
+  outline: none;
+
+  cursor: text;
+
+  overflow-wrap: anywhere;
+}
+
+.ts-rubric-content:focus {
+  background: rgba(4,120,87,.08);
+}
+
+
+/* MARKS TABULATION - SINGLE BORDER */
+
+.ts-marks-table {
+  width: 100%;
+
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+
+  border: 1px solid #000 !important;
+
+  margin-bottom: 1.2mm;
+
+
+  table-layout: fixed;
+}
+
+.ts-marks-table th,
+.ts-marks-table td {
+  border: 1px solid #000 !important;
+
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: #000 !important;
+
+  padding: .55mm .9mm;
+
+  vertical-align: middle;
+
+  text-align: center;
+
+  box-shadow: none !important;
+}
+
+.ts-marks-table th {
+  font-weight: bold;
+}
+
+.ts-marks-table .ts-qno {
+  width: 11%;
+}
+
+.ts-marks-table .ts-allotted {
+  width: 12%;
+}
+
+.ts-marks-table .ts-awarded {
+  width: 12%;
+}
+
+.ts-marks-table .ts-co {
+  width: 14%;
+}
+
+.ts-marks-table .ts-bloom {
+  width: 19%;
+}
+
+.ts-marks-table .ts-remarks {
+  width: 32%;
+}
+
+
+/* MARK CONTENT */
+
+.ts-mark-content {
+  display: block;
+
+  /* Row height: the padding sits inside the editable area, so the whole
+     row is clickable and the text stays centred. */
+  padding: 1mm 0;
+
+  min-height: 1.25em;
+
+  line-height: 1.25;
+
+  outline: none;
+
+  cursor: text;
+
+  overflow-wrap: anywhere;
+}
+
+.ts-mark-content:focus {
+  background: rgba(4,120,87,.08);
+}
+
+
+.ts-mark-row-selected td {
+  outline: 1px solid rgba(4,120,87,.35);
+  outline-offset: -1px;
+}
+
+/* FEEDBACK */
+
+.ts-feedback {
+
+  margin-bottom: 2mm;
+}
+
+.ts-fb-lbl {
+  font-weight: bold;
+
+  text-decoration: underline;
+}
+
+.ts-feedback .ts-fb-lbl {
+  display: block;
+
+  margin-bottom: 1.5mm;
+}
+
+.ts-feedback .ts-fb-line {
+  display: block;
+
+  margin: 1.5mm 0;
+}
+
+.ts-feedback br {
+  display: none;
+}
+
+.ts-feedback [contenteditable] {
+  outline: none;
+
+  cursor: text;
+
+  display: inline;
+
+  min-width: 15mm;
+}
+
+.ts-feedback [contenteditable]:focus {
+  background: rgba(4,120,87,.08);
+
+  border-radius: 2px;
+}
+
+
+/* SIGNATURE SECTION */
+
+.ts-sigs {
+  position: absolute;
+
+  bottom: var(--ts-m-bottom);
+
+  left: var(--ts-m-left);
+  right: var(--ts-m-right);
+
+  /* gap above the review sentence */
+  padding-top: 4mm;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2mm;
+}
+
+.ts-sigs-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-end;
+
+  width: 100%;
+}
+
+.ts-sig-left {
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: flex-end;
+}
+
+.ts-sig-right {
+  flex: 0 0 45%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: flex-end;
+}
+
+.ts-sig-img-area {
+  height: 16mm;
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: center;
+
+  margin-bottom: 1mm;
+}
+
+.ts-sig-img {
+  max-height: 16mm;
+
+  max-width: 100%;
+
+  object-fit: contain;
+}
+
+.ts-sig-left .ts-sig-img-area {
+  justify-content: flex-start;
+}
+
+.ts-sig-left .ts-sig-lbl {
+  text-align: left;
+}
+
+.ts-sig-lbl {
+
+  margin: 0;
+}
+
+.ts-review-text {
+
+  margin: 0;
+
+  /* same line box as .ts-sig-lbl, so the sentence and the caption share one baseline */
+  line-height: 1.25;
+}
+
+.ts-seal-img {
+  max-width: 22mm;
+
+  max-height: 22mm;
+
+  object-fit: contain;
+}
+
+
+/* EDITING HIGHLIGHTS */
+
+.ts-editable [contenteditable] {
+  border-bottom: 1px dashed rgba(4,120,87,.3);
+}
+
+.ts-editable [contenteditable]:hover {
+  background: rgba(4,120,87,.04);
+}
+
+.ts-editable [contenteditable]:focus {
+  background: rgba(4,120,87,.11) !important;
+
+  border-bottom-color: rgba(4,120,87,.8);
+}
+
+
+/* PLACEHOLDER */
+
+.ts-ph {
+  color: #c0c0c0;
+
+  font-style: italic;
+}
+
+
+/* TEXT SELECTED FOR FORMATTING */
+
+.ts-fmt-selected {
+  outline: 1px solid rgba(4,120,87,.7);
+
+  outline-offset: 1px;
+}

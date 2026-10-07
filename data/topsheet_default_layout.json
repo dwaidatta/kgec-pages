@@ -1,0 +1,316 @@
+{
+  "label": "Default",
+  "page": {
+    "fontSize": 8,
+    "margin": {
+      "top": 10,
+      "right": 10,
+      "bottom": 10,
+      "left": 10
+    },
+    "signatureHeight": 32
+  },
+  "texts": {
+    "examinationTitle": {
+      "text": "Maulana Abul Kalam Azad University of Technology, West Bengal Top Sheet for CA1 Marks Submission",
+      "fontSize": 9,
+      "bold": true,
+      "underline": true
+    },
+    "examinationSubtitle": {
+      "text": "(Written Test as a part of Continuous Assessment)",
+      "fontSize": 9,
+      "underline": true
+    },
+    "collegeCode": {
+      "text": "102"
+    },
+    "collegeName": {
+      "text": "Kalyani Government Engineering College"
+    },
+    "programme": {
+      "text": "Enter programme"
+    },
+    "semester": {
+      "text": "Enter year / semester"
+    },
+    "subject": {
+      "text": "Enter Subject"
+    },
+    "courseCode": {
+      "text": "Enter Paper Code"
+    },
+    "upid": {
+      "text": "Enter UPID"
+    },
+    "examDate": {
+      "text": "Enter Date of Examination"
+    },
+    "teacherName": {
+      "text": "Enter Teacher's name"
+    },
+    "teacherPhone": {
+      "text": "Enter Mobile number"
+    },
+    "fullMarks": {
+      "text": "Enter Full Marks"
+    },
+    "duration": {
+      "text": "Enter Duration"
+    },
+    "feedbackStrengths": {
+      "text": ""
+    },
+    "feedbackImprovements": {
+      "text": ""
+    },
+    "feedbackCorrective": {
+      "text": ""
+    },
+    "collegeLabel": {
+      "text": "College Code & Name:"
+    },
+    "programmeLabel": {
+      "text": "Programme:"
+    },
+    "semesterLabel": {
+      "text": "Year/Semester:"
+    },
+    "subjectLabel": {
+      "text": "Subject (course):"
+    },
+    "courseCodeLabel": {
+      "text": "Paper (course) Code:"
+    },
+    "upidLabel": {
+      "text": "UPID:"
+    },
+    "examDateLabel": {
+      "text": "Date of Examination:"
+    },
+    "studentNameLabel": {
+      "text": "Name of the Student:"
+    },
+    "rollLabel": {
+      "text": "Roll Number:"
+    },
+    "teacherNameLabel": {
+      "text": "Subject Teacher:"
+    },
+    "teacherPhoneLabel": {
+      "text": "Mobile Number:"
+    },
+    "fullMarksLabel": {
+      "text": "Full Marks:"
+    },
+    "durationLabel": {
+      "text": "Duration:"
+    },
+    "rubricsHeading": {
+      "text": "Assessment Rubrics:",
+      "fontSize": 9
+    },
+    "rbHeadCriteria": {
+      "text": "Criteria"
+    },
+    "rbHead1": {
+      "text": "(1) Excellent (80-100%)"
+    },
+    "rbHead2": {
+      "text": "(2) Good (60-79%)"
+    },
+    "rbHead3": {
+      "text": "(3) Satisfactory (40-59%)"
+    },
+    "rbHead4": {
+      "text": "(4) Needs Improvement (<40%)"
+    },
+    "marksHeading": {
+      "text": "Marks Tabulation:",
+      "fontSize": 9
+    },
+    "mkHeadQno": {
+      "text": "Q. No."
+    },
+    "mkHeadAllotted": {
+      "text": "Marks Allotted"
+    },
+    "mkHeadAwarded": {
+      "text": "Marks Awarded"
+    },
+    "mkHeadCo": {
+      "text": "Course Outcome"
+    },
+    "mkHeadBloom": {
+      "text": "Bloom's Level"
+    },
+    "mkHeadRemarks": {
+      "text": "Remarks"
+    },
+    "feedbackHeading": {
+      "text": "Examiner's Feedback:",
+      "fontSize": 9
+    },
+    "strengthsLabel": {
+      "text": "Strengths of the Student:"
+    },
+    "improvementsLabel": {
+      "text": "Areas for Improvement:"
+    },
+    "correctiveLabel": {
+      "text": "Suggested Corrective Measures:"
+    },
+    "reviewText": {
+      "text": "I have reviewed my evaluated answer script and understood the marks and feedback awarded."
+    },
+    "examinerSigLabel": {
+      "text": "Signature of the Examiner with date"
+    },
+    "studentSigLabel": {
+      "text": "Signature of the student with date"
+    },
+    "collegeLine": {
+      "fontSize": 9
+    }
+  },
+  "rubrics": [
+    {
+      "letter": "A",
+      "criteria": "Conceptual Understanding",
+      "c1": "Complete accuracy, deep insight - (Editable as per subject)",
+      "c2": "Mostly correct, minor gaps - (Editable as per subject)",
+      "c3": "Basic understanding - (Editable as per subject)",
+      "c4": "Poor understanding - (Editable as per subject)"
+    },
+    {
+      "letter": "B",
+      "criteria": "Application / Problem Solving",
+      "c1": "Accurate and logical application - (Editable as per subject)",
+      "c2": "Minor errors in application - (Editable as per subject)",
+      "c3": "Limited application ability - (Editable as per subject)",
+      "c4": "Incorrect approach - (Editable as per subject)"
+    },
+    {
+      "letter": "C",
+      "criteria": "Presentation & Clarity",
+      "c1": "Well-structured, clear steps - (Editable as per subject)",
+      "c2": "Mostly clear - (Editable as per subject)",
+      "c3": "Some lack of clarity - (Editable as per subject)",
+      "c4": "Poor presentation - (Editable as per subject)"
+    },
+    {
+      "letter": "D",
+      "criteria": "Analytical Ability",
+      "c1": "Strong reasoning and justification - (Editable as per subject)",
+      "c2": "Adequate reasoning - (Editable as per subject)",
+      "c3": "Limited reasoning - (Editable as per subject)",
+      "c4": "No logical justification - (Editable as per subject)"
+    }
+  ],
+  "markRows": [
+    {
+      "qno": "1.a)",
+      "allotted": "1",
+      "awarded": "",
+      "co": "CO1",
+      "bloom": "I - Understand",
+      "remarks": ""
+    },
+    {
+      "qno": "1.b)",
+      "allotted": "1",
+      "awarded": "",
+      "co": "CO3",
+      "bloom": "I - Recall",
+      "remarks": ""
+    },
+    {
+      "qno": "1.c)",
+      "allotted": "1",
+      "awarded": "",
+      "co": "CO2",
+      "bloom": "I - Remember",
+      "remarks": ""
+    },
+    {
+      "qno": "1.d)",
+      "allotted": "1",
+      "awarded": "",
+      "co": "CO1",
+      "bloom": "I - Recall",
+      "remarks": ""
+    },
+    {
+      "qno": "1.e)",
+      "allotted": "1",
+      "awarded": "",
+      "co": "CO1",
+      "bloom": "II - Understand",
+      "remarks": ""
+    },
+    {
+      "qno": "1.f)",
+      "allotted": "1",
+      "awarded": "",
+      "co": "CO1",
+      "bloom": "I - Memorize",
+      "remarks": ""
+    },
+    {
+      "qno": "1.g)",
+      "allotted": "1",
+      "awarded": "",
+      "co": "CO3",
+      "bloom": "I - Memorize",
+      "remarks": ""
+    },
+    {
+      "qno": "2",
+      "allotted": "5",
+      "awarded": "",
+      "co": "CO1,CO3",
+      "bloom": "VI - Discuss",
+      "remarks": ""
+    },
+    {
+      "qno": "3",
+      "allotted": "5",
+      "awarded": "",
+      "co": "CO2",
+      "bloom": "VI - Describe",
+      "remarks": ""
+    },
+    {
+      "qno": "4",
+      "allotted": "5",
+      "awarded": "",
+      "co": "CO2",
+      "bloom": "V - Explain",
+      "remarks": ""
+    },
+    {
+      "qno": "5",
+      "allotted": "5",
+      "awarded": "",
+      "co": "CO2",
+      "bloom": "I - Define",
+      "remarks": ""
+    },
+    {
+      "qno": "6",
+      "allotted": "5",
+      "awarded": "",
+      "co": "CO2",
+      "bloom": "V - Explain",
+      "remarks": ""
+    },
+    {
+      "qno": "7",
+      "allotted": "5",
+      "awarded": "",
+      "co": "CO3",
+      "bloom": "V - Explain",
+      "remarks": ""
+    }
+  ]
+}
