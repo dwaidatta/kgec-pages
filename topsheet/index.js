@@ -7,6 +7,7 @@
 import { renderNavbar } from "../lib/navbar.js";
 import { showToast } from "../lib/ui.js";
 import { extractMainSignature as processImage } from "../lib/signature-extract.js";
+import { openSignaturePicker } from "../lib/signature-picker.js";
 import { activateStudentFlow } from "./student/pdf-annotator.js";
 
 // Default sheet content (texts, text formats, page settings, rubrics and
@@ -641,45 +642,58 @@ function setImgEl(selector, dataURL) {
   });
 }
 
-// Image upload handlers
+// Signature / seal pickers (same popup as the student flow)
 
-async function handleImageUpload(file, { stateKey, previewId, statusId, transparent, threshold, maxWidth, maxHeight }) {
-  const statusEl = document.getElementById(statusId);
-
+function applyPickedImage({ stateKey, previewId, statusId, variantsId }, variants) {
   const previewEl = document.getElementById(previewId);
 
-  statusEl.textContent = "Processing...";
+  const variantsEl = document.getElementById(variantsId);
 
-  previewEl.classList.remove("has-img");
+  const use = (v) => {
+    state.common[stateKey] = v.dataUrl;
 
-  try {
-    const dataURL = await processImage(file, {
-      transparent,
-      threshold,
-      maxWidth,
-      maxHeight,
-    });
-
-    if (!dataURL) {
-      throw new Error("Blank or unreadable image.");
-    }
-
-    state.common[stateKey] = dataURL;
-
-    previewEl.src = dataURL;
+    previewEl.src = v.dataUrl;
 
     previewEl.classList.add("has-img");
 
-    statusEl.textContent = "Processed successfully";
+    document.getElementById(statusId).textContent = "Ready";
 
     refreshCommonImages();
-  } catch (err) {
-    statusEl.textContent = `Error: ${err.message}`;
 
-    state.common[stateKey] = null;
+    variantsEl.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.key === v.key));
+  };
 
-    showToast(`Image processing failed: ${err.message}`, "danger");
+  variantsEl.replaceChildren();
+
+  variantsEl.classList.toggle("d-none", variants.length < 2);
+
+  for (const v of variants) {
+    const b = document.createElement("button");
+
+    b.type = "button";
+
+    b.dataset.key = v.key;
+
+    b.className = "btn btn-sm btn-outline-secondary flex-fill";
+
+    b.textContent = v.label;
+
+    b.addEventListener("click", () => use(v));
+
+    variantsEl.appendChild(b);
   }
+
+  use(variants[0]);
+}
+
+async function pickImage(opts, title) {
+  const picked = await openSignaturePicker({ title, allowAsIs: true });
+
+  if (!picked?.variants.length) {
+    return;
+  }
+
+  applyPickedImage(opts, picked.variants);
 }
 
 // Apply the layout model to the sheet
@@ -909,6 +923,166 @@ function bindFormatting() {
 
     if (rec) rec.text = el.textContent;
   });
+
+  initImagePlacement();
+}
+
+// Free placement of the teacher signature and the college seal:
+// drag the image to move it, drag the corner handle to scale it.
+
+const PLACEABLE = ".ts-teacher-sig, .ts-college-seal";
+
+let placeTarget = null;
+
+let placeBox = null;
+
+function showPlaceBox() {
+  if (!placeTarget || state.step !== 1) {
+    placeBox.style.display = "none";
+
+    return;
+  }
+
+  const r = placeTarget.getBoundingClientRect();
+
+  Object.assign(placeBox.style, {
+    display: "block",
+    left: `${r.left}px`,
+    top: `${r.top}px`,
+    width: `${r.width}px`,
+    height: `${r.height}px`,
+  });
+}
+
+// Takes the image out of the layout flow, keeping it exactly where it is now.
+function detachForPlacing(img) {
+  if (img.dataset.placed) return;
+
+  const r = img.getBoundingClientRect();
+
+  const parent = img.offsetParent.getBoundingClientRect();
+
+  Object.assign(img.style, {
+    maxWidth: "none",
+    maxHeight: "none",
+    width: `${r.width}px`,
+    height: "auto",
+    position: "absolute",
+    left: `${r.left - parent.left}px`,
+    top: `${r.top - parent.top}px`,
+  });
+
+  img.dataset.placed = "1";
+}
+
+function resetPlacement(selector) {
+  const img = sheetDoc().querySelector(selector);
+
+  if (!img) return;
+
+  ["maxWidth", "maxHeight", "width", "height", "position", "left", "top"].forEach((k) => {
+    img.style[k] = "";
+  });
+
+  delete img.dataset.placed;
+
+  showPlaceBox();
+}
+
+function initImagePlacement() {
+  const doc = sheetDoc();
+
+  placeBox = doc.createElement("div");
+
+  placeBox.style.cssText =
+    "position:fixed;display:none;box-sizing:border-box;border:1px dashed #047857;pointer-events:none;z-index:50";
+
+  const handle = doc.createElement("span");
+
+  handle.style.cssText =
+    "position:absolute;right:-6px;bottom:-6px;width:12px;height:12px;background:#047857;border:2px solid #fff;border-radius:50%;cursor:nwse-resize;pointer-events:auto;touch-action:none";
+
+  placeBox.appendChild(handle);
+
+  doc.body.appendChild(placeBox);
+
+  doc.addEventListener("pointerdown", (e) => {
+    if (e.target === handle || e.target.closest?.(PLACEABLE)) return;
+
+    placeTarget = null;
+
+    showPlaceBox();
+  });
+
+  doc.addEventListener("pointerdown", (e) => {
+    const img = e.target.closest?.(PLACEABLE);
+
+    if (!img || state.step !== 1) return;
+
+    e.preventDefault();
+
+    placeTarget = img;
+
+    detachForPlacing(img);
+
+    showPlaceBox();
+
+    const start = { x: e.clientX, y: e.clientY, left: parseFloat(img.style.left), top: parseFloat(img.style.top) };
+
+    img.setPointerCapture(e.pointerId);
+
+    img.style.cursor = "move";
+
+    const move = (ev) => {
+      img.style.left = `${start.left + ev.clientX - start.x}px`;
+
+      img.style.top = `${start.top + ev.clientY - start.y}px`;
+
+      showPlaceBox();
+    };
+
+    const up = () => {
+      img.removeEventListener("pointermove", move);
+
+      img.removeEventListener("pointerup", up);
+    };
+
+    img.addEventListener("pointermove", move);
+
+    img.addEventListener("pointerup", up);
+  });
+
+  handle.addEventListener("pointerdown", (e) => {
+    if (!placeTarget) return;
+
+    e.preventDefault();
+
+    e.stopPropagation();
+
+    const img = placeTarget;
+
+    const startW = img.getBoundingClientRect().width;
+
+    const startX = e.clientX;
+
+    handle.setPointerCapture(e.pointerId);
+
+    const move = (ev) => {
+      img.style.width = `${Math.max(20, startW + ev.clientX - startX)}px`;
+
+      showPlaceBox();
+    };
+
+    const up = () => {
+      handle.removeEventListener("pointermove", move);
+
+      handle.removeEventListener("pointerup", up);
+    };
+
+    handle.addEventListener("pointermove", move);
+
+    handle.addEventListener("pointerup", up);
+  });
 }
 
 // Step 1 to Step 2
@@ -943,18 +1117,22 @@ function goToStep2() {
   }
 
   if (!state.common.processedTeacherSig) {
-    showToast("Please upload and process the teacher signature.", "warning");
+    showToast("Please add the teacher signature.", "warning");
 
     return;
   }
 
   if (!state.common.processedCollegeSeal) {
-    showToast("Please upload and process the college seal.", "warning");
+    showToast("Please add the college seal.", "warning");
 
     return;
   }
 
   state.step = 2;
+
+  placeTarget = null;
+
+  showPlaceBox();
 
   clearFormatSelection();
 
@@ -1495,6 +1673,100 @@ async function waitForImages(container) {
   );
 }
 
+// Download the sheet as it is now, with the student fields left blank.
+// Printed from a hidden copy of the sheet (like the front page generator), so the
+// PDF keeps real text and is sharp. The browser's print dialog saves it as PDF.
+
+async function downloadBlankSheet() {
+  const btn = document.getElementById("btn-download-blank");
+
+  btn.disabled = true;
+
+  const iframe = document.createElement("iframe");
+
+  iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:210mm;height:297mm;border:0";
+
+  document.body.appendChild(iframe);
+
+  const cleanup = () => {
+    iframe.remove();
+
+    btn.disabled = false;
+  };
+
+  try {
+    syncCommonFromDOM();
+
+    await new Promise((resolve, reject) => {
+      iframe.onload = resolve;
+
+      iframe.onerror = reject;
+
+      iframe.src = "./topsheet/topsheet.html";
+    });
+
+    const doc = iframe.contentDocument;
+
+    const sheet = buildTopsheetEl(null);
+
+    sheet.style.width = "210mm";
+
+    sheet.style.height = "297mm";
+
+    sheet.style.overflow = "hidden";
+
+    doc.getElementById("ts-preview").replaceWith(sheet);
+
+    const style = doc.createElement("style");
+
+    style.textContent = "@page { size: A4; margin: 0; } html, body { background: #fff; }";
+
+    doc.head.appendChild(style);
+
+    // Printed text looks heavier than the smoothed text on screen, so print one
+    // step lighter: normal text at 300 and bold at 600 (the font's own weights).
+    const font = doc.createElement("link");
+
+    font.rel = "stylesheet";
+
+    font.href = "https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;600;700&display=swap";
+
+    doc.head.appendChild(font);
+
+    await new Promise((resolve) => {
+      font.onload = resolve;
+
+      font.onerror = resolve;
+    });
+
+    const win = iframe.contentWindow;
+
+    [sheet, ...sheet.querySelectorAll("*")].forEach((el) => {
+      el.style.fontWeight = parseInt(win.getComputedStyle(el).fontWeight, 10) >= 600 ? 600 : 300;
+    });
+
+    await doc.fonts.load("300 7pt 'Roboto Condensed'");
+
+    await doc.fonts.load("600 7pt 'Roboto Condensed'");
+
+    await doc.fonts.ready;
+
+    await waitForImages(doc.body);
+
+    iframe.contentWindow.addEventListener("afterprint", cleanup, { once: true });
+
+    iframe.contentWindow.focus();
+
+    iframe.contentWindow.print();
+  } catch (err) {
+    console.error("Sheet download failed:", err);
+
+    showToast("Download failed. See console for details.", "danger");
+
+    cleanup();
+  }
+}
+
 // Export all as PDF
 
 async function exportAllAsPDF() {
@@ -1802,59 +2074,29 @@ async function exportAllAsZIP() {
 // Bind sidebar events
 
 function bindSidebarEvents() {
-  // Teacher signature
+  // Teacher signature and college seal
 
-  document.getElementById("inp-teacher-sig").addEventListener("change", (e) => {
-    const file = e.target.files[0];
+  document.getElementById("btn-teacher-sig").addEventListener("click", () =>
+    pickImage(
+      { stateKey: "processedTeacherSig", previewId: "prev-teacher-sig", statusId: "stat-teacher-sig", variantsId: "var-teacher-sig" },
+      "Add teacher signature"
+    )
+  );
 
-    if (!file) {
-      return;
-    }
+  document.getElementById("btn-reset-teacher-sig").addEventListener("click", () => resetPlacement(".ts-teacher-sig"));
 
-    handleImageUpload(file, {
-      stateKey: "processedTeacherSig",
+  document.getElementById("btn-reset-college-seal").addEventListener("click", () => resetPlacement(".ts-college-seal"));
 
-      previewId: "prev-teacher-sig",
-
-      statusId: "stat-teacher-sig",
-
-      transparent: true,
-
-      threshold: 225,
-
-      maxWidth: 600,
-
-      maxHeight: 200,
-    });
-  });
-
-  // College seal
-
-  document.getElementById("inp-college-seal").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-
-    if (!file) {
-      return;
-    }
-
-    handleImageUpload(file, {
-      stateKey: "processedCollegeSeal",
-
-      previewId: "prev-college-seal",
-
-      statusId: "stat-college-seal",
-
-      transparent: true,
-
-      threshold: 240,
-
-      maxWidth: 300,
-
-      maxHeight: 300,
-    });
-  });
+  document.getElementById("btn-college-seal").addEventListener("click", () =>
+    pickImage(
+      { stateKey: "processedCollegeSeal", previewId: "prev-college-seal", statusId: "stat-college-seal", variantsId: "var-college-seal" },
+      "Add college seal"
+    )
+  );
 
   // Step navigation
+
+  document.getElementById("btn-download-blank").addEventListener("click", downloadBlankSheet);
 
   document.getElementById("btn-go-s2").addEventListener("click", goToStep2);
 

@@ -596,14 +596,32 @@
 
         <div id="sidebar-s1" class="ts-sidebar-stack">
 
-          <div
-            class="alert alert-info py-2 px-3 small mb-0"
-            role="alert"
-          >
+<!-- EDIT DETAILS -->
 
-            <i class="bi bi-pencil"></i>
+          <div class="card">
 
-            Click any text on the A4 preview to edit it directly.
+            <div class="card-header">
+
+              <i class="bi bi-pencil-square"></i>
+
+              Edit the page details
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <ol class="small mb-0 ps-3">
+
+                <li>Click any text on the A4 preview to edit it directly.</li>
+
+                <li>Change the details so they match this test.</li>
+
+                <li>Then add the signature and the college seal below.</li>
+
+              </ol>
+
+            </div>
 
           </div>
 
@@ -616,26 +634,44 @@
 
               <i class="bi bi-pen"></i>
 
-              Teacher / Examiner Signature
+              Add the teacher signature
 
             </div>
 
 
             <div class="card-body d-flex flex-column gap-2">
 
-              <label class="form-label mb-0">
-
-                Upload signature image (JPG/PNG)
-
-              </label>
-
-
-              <input
-                type="file"
-                id="inp-teacher-sig"
-                class="form-control"
-                accept="image/*"
+              <button
+                type="button"
+                id="btn-teacher-sig"
+                class="btn btn-outline-primary"
               >
+                <i class="bi bi-image"></i>
+                Add signature (from an image)
+              </button>
+
+
+              <div id="var-teacher-sig" class="d-flex gap-2 d-none"></div>
+
+
+              <div class="small text-muted">
+
+                Then drag the image on the sheet to move it, and drag the round handle to resize it.
+
+              </div>
+
+
+              <button
+                type="button"
+                id="btn-reset-teacher-sig"
+                class="btn btn-sm btn-outline-secondary"
+              >
+
+                <i class="bi bi-arrow-counterclockwise"></i>
+
+                Reset position and size
+
+              </button>
 
 
               <img
@@ -663,26 +699,44 @@
 
               <i class="bi bi-shield-check"></i>
 
-              College Seal
+              Add the college seal
 
             </div>
 
 
             <div class="card-body d-flex flex-column gap-2">
 
-              <label class="form-label mb-0">
-
-                Upload seal image (JPG/PNG)
-
-              </label>
-
-
-              <input
-                type="file"
-                id="inp-college-seal"
-                class="form-control"
-                accept="image/*"
+              <button
+                type="button"
+                id="btn-college-seal"
+                class="btn btn-outline-primary"
               >
+                <i class="bi bi-image"></i>
+                Add seal (from an image)
+              </button>
+
+
+              <div id="var-college-seal" class="d-flex gap-2 d-none"></div>
+
+
+              <div class="small text-muted">
+
+                Then drag the image on the sheet to move it, and drag the round handle to resize it.
+
+              </div>
+
+
+              <button
+                type="button"
+                id="btn-reset-college-seal"
+                class="btn btn-sm btn-outline-secondary"
+              >
+
+                <i class="bi bi-arrow-counterclockwise"></i>
+
+                Reset position and size
+
+              </button>
 
 
               <img
@@ -833,27 +887,58 @@
           <div class="card cta-card">
 
             <div class="card-header">
-              <i class="bi bi-1-circle"></i>
-              Step 1 of 2: Common fields
+              <i class="bi bi-download"></i>
+              Download the sheet
             </div>
 
             <div class="card-body d-flex flex-column gap-2">
 
               <p class="small text-muted mb-1">
 
-                Fill all fields on the A4 preview, upload teacher signature and college seal, then proceed to Step 2.
+                Done editing? Download the sheet as a PDF. The student name, roll number and signature stay blank for students to fill in. In the print window that opens, choose Save as PDF.
 
               </p>
 
+              <button
+                id="btn-download-blank"
+                type="button"
+                class="btn btn-success btn-lg w-100"
+              >
+
+                <i class="bi bi-download"></i>
+
+                Download sheet (PDF)
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div class="card cta-card">
+
+            <div class="card-header">
+              <i class="bi bi-people"></i>
+              Optional: fill in the students
+            </div>
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <p class="small text-muted mb-1">
+
+                Want to prepare a sheet for every student yourself? Continue to the next step to upload a student CSV and generate one filled sheet per student. This needs the teacher signature and college seal added above.
+
+              </p>
 
               <button
                 id="btn-go-s2"
-                class="btn btn-primary btn-lg w-100"
+                class="btn btn-primary w-100"
               >
 
                 <i class="bi bi-arrow-right-circle"></i>
 
-                Complete All Common Fields
+                Continue: add student details
 
               </button>
 
