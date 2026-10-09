@@ -1616,15 +1616,15 @@ async function generateAllTopsheets() {
   try {
     setProgress("Preparing pages...", 90);
 
-    state.printFrame = await buildPrintFrame(students, document.getElementById("ts-all-inner"));
+    state.printFrame = await buildPrintFrame(students, document.getElementById("ts-all-inner"), true);
 
-    showAllPages(students.length);
+    showAllPages(students.length + 1);
 
     state.generatedReady = true;
 
     document.getElementById("btn-export-pdf").disabled = false;
 
-    showToast(`${students.length} topsheets ready! Click "Export All as PDF".`, "success");
+    showToast(`${students.length} topsheets ready, plus 1 spare blank sheet on page 1. Click "Export All as PDF".`, "success");
   } catch (err) {
     showToast(`Could not prepare the pages: ${err.message || err}`, "danger");
   }
@@ -1758,7 +1758,12 @@ const PAGE_GAP_MM = 8;
 // With a `host`, the page is built inside it so it can be shown on screen (every
 // sheet stacked, one below the other); without one it stays off screen.
 
-async function buildPrintFrame(students, host = null) {
+// With `spareFirst`, one extra sheet with blank student fields is placed on the
+// first page, for the teacher's own use during the exam.
+
+async function buildPrintFrame(students, host = null, spareFirst = false) {
+  if (spareFirst) students = [null, ...students];
+
   const iframe = document.createElement("iframe");
 
   iframe.style.cssText = host
@@ -1863,7 +1868,7 @@ function showAllPages(count) {
 // Scroll the stacked pages to one student's page.
 
 function scrollToPage(idx) {
-  state.printFrame?.contentDocument.querySelectorAll(".ts-doc")[idx]?.scrollIntoView({ block: "start", behavior: "smooth" });
+  state.printFrame?.contentDocument.querySelectorAll(".ts-doc")[idx + 1]?.scrollIntoView({ block: "start", behavior: "smooth" });
 }
 
 // Export all students as one PDF (the pages were prepared by Generate).
