@@ -3,8 +3,8 @@
 /* A4 TOPSHEET DOCUMENT */
 
 .ts-doc {
-  font-family: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
-
+  font-family: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+  font-weight: 500;
 
   color: #000;
   background: #fff;
@@ -394,7 +394,7 @@
 }
 
 .ts-sig-right {
-  flex: 0 0 45%;
+  flex: 0 0 35%;
 
   display: flex;
 
@@ -438,8 +438,8 @@
 /* Step 1 only: show where the teacher signature and seal go, until they are placed (not exported) */
 .ts-teacher-sig-area {
   /* the right column centres its children, so the box needs a width of its own;
-     60% of this column matches the width of the student signature box */
-  width: 60%;
+     80% of this narrower column keeps the box near the student signature box's width */
+  width: 80%;
 
   align-self: center;
 }

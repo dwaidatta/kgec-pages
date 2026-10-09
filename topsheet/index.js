@@ -1814,9 +1814,9 @@ async function buildPrintFrame(students, host = null) {
     doc.head.appendChild(style);
 
     // Text keeps the weights it has on screen.
-    await doc.fonts.load("7pt 'Roboto Condensed'");
+    await doc.fonts.load("500 7pt 'IBM Plex Sans Condensed'");
 
-    await doc.fonts.load("bold 7pt 'Roboto Condensed'");
+    await doc.fonts.load("700 7pt 'IBM Plex Sans Condensed'");
 
     await doc.fonts.ready;
 
