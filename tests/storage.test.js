@@ -1,7 +1,7 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import "./setup.js";
-import { getItem, setItem, removeItem, KEYS } from "../lib/storage.js";
+import { getItem, setItem, removeItem, KEYS } from "../website/lib/storage.js";
 
 beforeEach(() => {
   globalThis.localStorage.clear();

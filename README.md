@@ -18,26 +18,27 @@ This is a student-made project and is **not** an official college resource.
 ## Project layout
 
 ```text
-index.html, index.js          Landing page
-front-page-generator/         Layout editor + PDF export
-settings/                     Local data management (students, teachers, signatures, stamps, layouts, subjects)
-readymade/                    Readymade templates (placeholder)
-multimerge/                   PDF merging tool
-topsheet/                     Mark-tabulation top sheets for teachers (placeholder)
-lib/                          Shared browser modules (storage, users, subjects, layouts, PDF export, navbar, UI helpers)
-data/                         Static JSON data (subjects list, default layout, saved layouts, emblem/logo assets)
-assets/                       Shared stylesheet and generated version metadata
-tests/                        Node test-runner unit tests for the modules in lib/
+website/                      Public site, deployed as-is to GitHub Pages
+  index.html, index.js        Landing page
+  front-page-generator/         Layout editor + PDF export
+  settings/                     Local data management (students, teachers, signatures, stamps, layouts, subjects)
+  readymade/                    Readymade templates (placeholder)
+  multimerge/                   PDF merging tool
+  topsheet/                     Mark-tabulation top sheets for teachers (placeholder)
+  lib/                          Shared browser modules (storage, users, subjects, layouts, PDF export, navbar, UI helpers)
+  data/                         Static JSON data (subjects list, default layout, saved layouts, emblem/logo assets)
+  assets/                       Shared stylesheet and generated version metadata
+tests/                        Node test-runner unit tests for the modules in website/lib/
 .github/workflows/            CI (tests on every push/PR) and the manual GitHub Pages release workflow
 ```
 
 ## Usage
 
-Open `index.html` in a browser (or serve the repo root with any static file server) and use the cards on the home page to navigate between tools. No build step or installation is required to use the site.
+Open `website/index.html` in a browser (or serve the `website/` folder with any static file server) and use the cards on the home page to navigate between tools. No build step or installation is required to use the site.
 
 ## Development
 
-The `lib/` modules are plain ES modules with no build step, so you can edit and refresh the browser directly.
+The `website/lib/` modules are plain ES modules with no build step, so you can edit and refresh the browser directly.
 
 Run the unit test suite (Node's built-in test runner, no dependencies to install):
 

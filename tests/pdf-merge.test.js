@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import "./setup.js";
-import { sanitizeFilename, stripExtension, buildMergedFilename } from "../lib/pdf-merge.js";
+import { sanitizeFilename, stripExtension, buildMergedFilename } from "../website/lib/pdf-merge.js";
 
 test("sanitizeFilename strips characters illegal in filenames", () => {
   assert.equal(sanitizeFilename('a/b\\c:d*e?f"g<h>i|j'), "abcdefghij");

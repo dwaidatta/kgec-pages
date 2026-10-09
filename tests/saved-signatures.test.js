@@ -9,8 +9,8 @@ import {
   listSignaturesForUser,
   listUnlinkedSignatures,
   setSignatureRole,
-} from "../lib/saved-signatures.js";
-import { KEYS } from "../lib/storage.js";
+} from "../website/lib/saved-signatures.js";
+import { KEYS } from "../website/lib/storage.js";
 
 const black = (n = "AAA") => ({ key: "black", label: "Black ink", dataUrl: `data:image/png;base64,${n}` });
 const blue = (n = "BBB") => ({ key: "blue", label: "Blue ink", dataUrl: `data:image/png;base64,${n}` });

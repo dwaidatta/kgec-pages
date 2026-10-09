@@ -1,8 +1,8 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import "./setup.js";
-import { KEYS } from "../lib/storage.js";
-import { getDefaultLayout, getStoredDefaultLayout, isLockedLayout } from "../lib/default-layout.js";
+import { KEYS } from "../website/lib/storage.js";
+import { getDefaultLayout, getStoredDefaultLayout, isLockedLayout } from "../website/lib/default-layout.js";
 
 beforeEach(() => {
   globalThis.localStorage.clear();

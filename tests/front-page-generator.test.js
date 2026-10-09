@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import "./setup.js";
-import { buildExportFilename } from "../front-page-generator/index.js";
+import { buildExportFilename } from "../website/front-page-generator/index.js";
 
 test("buildExportFilename combines index, name, roll, and a timestamp", (t) => {
   t.mock.method(Date, "now", () => 1700000000000);

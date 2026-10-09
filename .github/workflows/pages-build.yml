@@ -98,8 +98,8 @@ jobs:
 
       - name: Generate version metadata
         run: |
-          mkdir -p assets/config
-          cat <<EOF > assets/config/version.json
+          mkdir -p website/assets/config
+          cat <<EOF > website/assets/config/version.json
           {
             "repoUrl": "${{ github.server_url }}/${{ github.repository }}",
             "version": "${TAG_NAME}",
@@ -112,26 +112,13 @@ jobs:
 
           echo "Generated version metadata: ${TAG_NAME} (${SHORT_SHA})"
 
-      - name: Stage site (exclude dev-only files)
-        run: |
-          mkdir -p _site
-          rsync -a \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='tests' \
-            --exclude='node_modules' \
-            --exclude='package.json' \
-            --exclude='package-lock.json' \
-            --exclude='_site' \
-            ./ _site/
-
       - name: Configure Pages
         uses: actions/configure-pages@v6
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: _site
+          path: website
 
       - name: Deploy to GitHub Pages
         id: deployment

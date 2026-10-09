@@ -10,12 +10,12 @@ If you're planning a larger change, please open an issue first to discuss the ap
 
 ## Project structure
 
-The site is plain HTML/CSS/JS with no build step or framework. See the "Project layout" section of the [README](README.md#project-layout) for where things live. Shared logic used by more than one page belongs in `lib/`; page-specific code stays in that page's `index.js`.
+The site (in `website/`) is plain HTML/CSS/JS with no build step or framework. See the "Project layout" section of the [README](README.md#project-layout) for where things live. Shared logic used by more than one page belongs in `website/lib/`; page-specific code stays in that page's `index.js`.
 
 ## Making a change
 
 1. Fork the repository and create a branch off `main` for your change (see [Branch naming](#branch-naming) below).
-2. Open `index.html` (or the relevant page) directly in a browser, or serve the repo root with any static file server, to try your change.
+2. Open `website/index.html` (or the relevant page) directly in a browser, or serve the `website/` folder with any static file server, to try your change.
 3. Keep pure logic (parsing, formatting, storage access, etc.) in `lib/` functions that don't touch the DOM, so it stays easy to unit test.
 4. Add or update tests in `tests/` for any logic you add or change (see [Tests](#tests) below).
 5. Run the test suite and make sure it passes:

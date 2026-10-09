@@ -1,7 +1,7 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import "./setup.js";
-import { listStamps, saveStamp, renameStamp, removeStamp } from "../lib/saved-stamps.js";
+import { listStamps, saveStamp, renameStamp, removeStamp } from "../website/lib/saved-stamps.js";
 
 beforeEach(() => {
   globalThis.localStorage.clear();

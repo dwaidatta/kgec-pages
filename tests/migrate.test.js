@@ -1,8 +1,8 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import "./setup.js";
-import { KEYS, getItem } from "../lib/storage.js";
-import { migrateStorage } from "../lib/migrate.js";
+import { KEYS, getItem } from "../website/lib/storage.js";
+import { migrateStorage } from "../website/lib/migrate.js";
 
 const put = (key, value) => globalThis.localStorage.setItem(key, JSON.stringify(value));
 const raw = (key) => globalThis.localStorage.getItem(key);

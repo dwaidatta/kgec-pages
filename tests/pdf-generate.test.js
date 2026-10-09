@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import "./setup.js";
-import { fillLayoutWithUser } from "../lib/pdf-generate.js";
+import { fillLayoutWithUser } from "../website/lib/pdf-generate.js";
 
 const baseLayout = {
   label: "Default",
