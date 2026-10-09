@@ -487,11 +487,11 @@ async function loadPdf(file) {
 // Signature list
 
 function allSignatures() {
-  const users = loadUsers();
-  const unlinked = new Set(listUnlinkedSignatures(users).map((s) => s.id));
+  const users = loadUsers("student");
+  const unlinked = new Set(listUnlinkedSignatures(users, "student").map((s) => s.id));
 
   // With a student chosen, offer their signatures plus the unlinked ones.
-  const saved = listSavedSignatures().filter(
+  const saved = listSavedSignatures("student").filter(
     (s) => !st.studentId || s.userId === st.studentId || unlinked.has(s.id)
   );
 

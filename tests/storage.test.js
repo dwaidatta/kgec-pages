@@ -28,6 +28,6 @@ test("removeItem clears a stored key", () => {
 });
 
 test("setItem returns true on success and getItem preserves falsy values", () => {
-  assert.equal(setItem(KEYS.LAST_USED_LAYOUT, 0), true);
-  assert.equal(getItem(KEYS.LAST_USED_LAYOUT), 0);
+  assert.equal(setItem(KEYS.STUDENT_LAST_USED_LAYOUT, 0), true);
+  assert.equal(getItem(KEYS.STUDENT_LAST_USED_LAYOUT), 0);
 });

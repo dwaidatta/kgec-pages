@@ -19,7 +19,7 @@ let saveLastUsedTimer = null;
 function saveLastUsedLayout() {
   clearTimeout(saveLastUsedTimer);
   saveLastUsedTimer = setTimeout(() => {
-    setItem(KEYS.LAST_USED_LAYOUT, currentLayout);
+    setItem(KEYS.STUDENT_LAST_USED_LAYOUT, currentLayout);
   }, 400);
 }
 
@@ -84,7 +84,7 @@ function renderLayoutSelect(savedLayouts, defaultLayout) {
   defaultOpt.textContent = defaultLayout.label || "Default";
   select.appendChild(defaultOpt);
 
-  const lastUsed = getItem(KEYS.LAST_USED_LAYOUT);
+  const lastUsed = getItem(KEYS.STUDENT_LAST_USED_LAYOUT);
   if (lastUsed) {
     const lastUsedOpt = document.createElement("option");
     lastUsedOpt.value = "__last_used__";
@@ -103,8 +103,8 @@ function renderLayoutSelect(savedLayouts, defaultLayout) {
 
   select.addEventListener("change", () => {
     const key = select.value;
-    const freshLayouts = getItem(KEYS.LAYOUTS) || {};
-    const freshLastUsed = getItem(KEYS.LAST_USED_LAYOUT);
+    const freshLayouts = getItem(KEYS.STUDENT_LAYOUTS) || {};
+    const freshLastUsed = getItem(KEYS.STUDENT_LAST_USED_LAYOUT);
 
     let next = null;
     if (key === "__default__") next = defaultLayout;
@@ -386,7 +386,7 @@ async function offerToSaveLayout() {
   if (snapshotLayout() === layoutSnapshot) return true;
 
   const key = document.getElementById("layout-select").value;
-  const layouts = getItem(KEYS.LAYOUTS) || {};
+  const layouts = getItem(KEYS.STUDENT_LAYOUTS) || {};
   const selected = layouts[key];
   const canOverwrite = Boolean(selected) && !isLockedLayout(currentLayout);
 
@@ -398,14 +398,14 @@ async function offerToSaveLayout() {
     currentLayout.label = choice.name;
     const newKey = "layout-" + Date.now();
     layouts[newKey] = structuredClone(currentLayout);
-    setItem(KEYS.LAYOUTS, layouts);
+    setItem(KEYS.STUDENT_LAYOUTS, layouts);
     renderLayoutSelect(layouts, defaultLayoutRef);
     document.getElementById("layout-select").value = newKey;
     syncControlsFromLayout();
     showToast("Saved as new layout.", "success");
   } else if (choice.action === "overwrite") {
     layouts[key] = structuredClone(currentLayout);
-    setItem(KEYS.LAYOUTS, layouts);
+    setItem(KEYS.STUDENT_LAYOUTS, layouts);
     showToast("Layout overwritten.", "success");
   }
 
@@ -417,7 +417,7 @@ async function saveLayoutAsNew() {
   const name = await promptForText("Enter a name for this layout:");
   if (!name || !name.trim()) return;
 
-  const layouts = getItem(KEYS.LAYOUTS) || {};
+  const layouts = getItem(KEYS.STUDENT_LAYOUTS) || {};
   const newKey = "layout-" + Date.now();
 
   // Update currentLayout itself first — not just a throwaway clone
@@ -425,7 +425,7 @@ async function saveLayoutAsNew() {
   currentLayout.label = name.trim();
 
   layouts[newKey] = structuredClone(currentLayout);
-  setItem(KEYS.LAYOUTS, layouts);
+  setItem(KEYS.STUDENT_LAYOUTS, layouts);
 
   renderLayoutSelect(layouts, defaultLayoutRef);
   document.getElementById("layout-select").value = newKey;
@@ -441,9 +441,9 @@ async function overwriteCurrentLayout() {
     return;
   }
 
-  const layouts = getItem(KEYS.LAYOUTS) || {};
+  const layouts = getItem(KEYS.STUDENT_LAYOUTS) || {};
   layouts[selectedKey] = structuredClone(currentLayout);
-  setItem(KEYS.LAYOUTS, layouts);
+  setItem(KEYS.STUDENT_LAYOUTS, layouts);
   layoutSnapshot = snapshotLayout();
   showToast("Layout overwritten.", "success");
 }
@@ -493,8 +493,8 @@ async function init() {
     defaultLayout = getStoredDefaultLayout();
   }
 
-  const savedLayouts = getItem(KEYS.LAYOUTS) || {};
-  const lastUsed = getItem(KEYS.LAST_USED_LAYOUT);
+  const savedLayouts = getItem(KEYS.STUDENT_LAYOUTS) || {};
+  const lastUsed = getItem(KEYS.STUDENT_LAST_USED_LAYOUT);
 
   renderMakeForList();
   renderLayoutSelect(savedLayouts, defaultLayout);

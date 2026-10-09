@@ -9,6 +9,9 @@ import { showToast, promptForText } from "../lib/ui.js";
 import { getItem, setItem, KEYS } from "../lib/storage.js";
 import { askToSaveLayout } from "../lib/layout-save-prompt.js";
 import { openSignaturePicker } from "../lib/signature-picker.js";
+import { listSavedSignatures, saveSignature } from "../lib/saved-signatures.js";
+import { listStamps, saveStamp } from "../lib/saved-stamps.js";
+import { populateStudentSelect, linkBadge } from "../lib/student-link.js";
 import { activateStudentFlow } from "./student/pdf-annotator.js";
 
 // Default sheet content (texts, text formats, page settings, rubrics and
@@ -692,14 +695,192 @@ function applyPickedImage({ stateKey, previewId, statusId, variantsId }, variant
   use(variants[0]);
 }
 
+const SIG_OPTS = {
+  kind: "signature",
+  stateKey: "processedTeacherSig",
+  previewId: "prev-teacher-sig",
+  statusId: "stat-teacher-sig",
+  variantsId: "var-teacher-sig",
+};
+
+const SEAL_OPTS = {
+  kind: "stamp",
+  stateKey: "processedCollegeSeal",
+  previewId: "prev-college-seal",
+  statusId: "stat-college-seal",
+  variantsId: "var-college-seal",
+};
+
+// Extracts a new image in the popup, saves it on this device and puts it on the sheet.
 async function pickImage(opts, title) {
-  const picked = await openSignaturePicker({ title, allowAsIs: true });
+  const isStamp = opts.kind === "stamp";
+
+  const picked = await openSignaturePicker({
+    title,
+    allowAsIs: true,
+    offerSave: true,
+    role: "teacher",
+    kind: opts.kind,
+  });
 
   if (!picked?.variants.length) {
     return;
   }
 
   applyPickedImage(opts, picked.variants);
+
+  // Keep it on this device for next time; the sheet still works if the browser refuses.
+  const failed = isStamp
+    ? !picked.variants.every((v) =>
+        saveStamp({
+          label: picked.variants.length > 1 ? `${picked.label || "Stamp"} (${v.label})` : picked.label,
+          dataUrl: v.dataUrl,
+        })
+      )
+    : !saveSignature({ variants: picked.variants, userId: picked.userId, role: "teacher" });
+
+  showToast(
+    failed ? "Could not save on this device (storage full or blocked). Used for this sheet only." : "Saved on this device.",
+    failed ? "warning" : "success"
+  );
+
+  if (!isStamp && picked.userId) {
+    document.getElementById("ts-teacher-select").value = picked.userId;
+  }
+
+  renderTeacherPanel();
+
+  renderStampPanel();
+}
+
+// Saved teachers, their signatures and the stamps, shown on the page like the student flow does.
+
+function savedChip(variants, caption, onPick) {
+  const chip = document.createElement("div");
+
+  chip.className = "st-sig-chip";
+
+  const row = document.createElement("div");
+
+  row.className = "d-flex gap-1";
+
+  variants.forEach((variant) => {
+    const btn = document.createElement("button");
+
+    btn.type = "button";
+
+    btn.className = "btn btn-outline-secondary p-1 st-sig-variant";
+
+    btn.title = `${variant.label}: click to put it on the sheet`;
+
+    btn.innerHTML = '<img alt=""><div class="small text-muted"></div>';
+
+    btn.querySelector("img").src = variant.dataUrl;
+
+    btn.querySelector("div").textContent = variant.label;
+
+    btn.addEventListener("click", () => onPick(variant));
+
+    row.appendChild(btn);
+  });
+
+  chip.appendChild(row);
+
+  if (caption) {
+    const cap = document.createElement("div");
+
+    cap.className = "small text-muted mt-1";
+
+    cap.appendChild(caption);
+
+    chip.appendChild(cap);
+  }
+
+  return chip;
+}
+
+// Writes text into one of the sheet's editable fields.
+function setSheetField(field, value) {
+  sheetDoc().querySelectorAll(`[data-field="${field}"]`).forEach((el) => {
+    el.textContent = value;
+  });
+
+  state.common[field] = value;
+}
+
+function renderTeacherPanel() {
+  const select = document.getElementById("ts-teacher-select");
+
+  const teachers = populateStudentSelect(select, { unlinkedLabel: "Choose a teacher...", role: "teacher" });
+
+  select.disabled = teachers.length === 0;
+
+  document.getElementById("ts-teacher-none").classList.toggle("d-none", teachers.length > 0);
+
+  // Name and mobile of the chosen teacher, each placed on the sheet with one click.
+  const teacher = teachers.find((u) => u.id === select.value);
+
+  const fieldDefs = [
+    { label: "Name", key: "name", field: "teacherName" },
+    { label: "Mobile", key: "mobile", field: "teacherPhone" },
+  ];
+
+  document.getElementById("ts-teacher-fields").replaceChildren(
+    ...fieldDefs
+      .filter((f) => teacher && (teacher[f.key] || "").trim())
+      .map((f) => {
+        const value = teacher[f.key].trim();
+
+        const btn = document.createElement("button");
+
+        btn.type = "button";
+
+        btn.className = "btn btn-sm btn-outline-secondary text-start";
+
+        btn.title = `Click to put the ${f.label.toLowerCase()} on the sheet`;
+
+        const label = document.createElement("span");
+
+        label.className = "text-muted";
+
+        label.textContent = `${f.label}: `;
+
+        btn.append(label, value);
+
+        btn.addEventListener("click", () => setSheetField(f.field, value));
+
+        return btn;
+      })
+  );
+
+  // Unlinked signatures are always offered; a teacher's own appear once chosen.
+  const sigs = listSavedSignatures("teacher").filter(
+    (g) => (teacher && g.userId === teacher.id) || !teachers.some((u) => u.id === g.userId)
+  );
+
+  document.getElementById("ts-teacher-sig-empty").classList.toggle("d-none", sigs.length > 0);
+
+  document.getElementById("ts-teacher-sig-list").replaceChildren(
+    ...sigs.map((g) =>
+      savedChip(g.variants, linkBadge(g.userId, teachers), (variant) =>
+        applyPickedImage(SIG_OPTS, [variant, ...g.variants.filter((v) => v !== variant)])
+      )
+    )
+  );
+}
+
+function renderStampPanel() {
+  const stamps = listStamps();
+
+  document.getElementById("ts-stamp-empty").classList.toggle("d-none", stamps.length > 0);
+
+  document.getElementById("ts-stamp-list").replaceChildren(
+    ...stamps.map((st) =>
+      savedChip([{ key: st.id, label: st.label, dataUrl: st.dataUrl }], null, (variant) =>
+        applyPickedImage(SEAL_OPTS, [variant])
+      )
+    )
+  );
 }
 
 // Apply the layout model to the sheet
@@ -1894,23 +2075,19 @@ async function exportAllAsPDF() {
 function bindSidebarEvents() {
   // Teacher signature and college seal
 
-  document.getElementById("btn-teacher-sig").addEventListener("click", () =>
-    pickImage(
-      { stateKey: "processedTeacherSig", previewId: "prev-teacher-sig", statusId: "stat-teacher-sig", variantsId: "var-teacher-sig" },
-      "Add teacher signature"
-    )
-  );
+  document.getElementById("btn-teacher-sig").addEventListener("click", () => pickImage(SIG_OPTS, "Add teacher signature"));
+
+  document.getElementById("ts-teacher-select").addEventListener("change", renderTeacherPanel);
+
+  renderTeacherPanel();
+
+  renderStampPanel();
 
   document.getElementById("btn-reset-teacher-sig").addEventListener("click", () => resetPlacement(".ts-teacher-sig"));
 
   document.getElementById("btn-reset-college-seal").addEventListener("click", () => resetPlacement(".ts-college-seal"));
 
-  document.getElementById("btn-college-seal").addEventListener("click", () =>
-    pickImage(
-      { stateKey: "processedCollegeSeal", previewId: "prev-college-seal", statusId: "stat-college-seal", variantsId: "var-college-seal" },
-      "Add college seal"
-    )
-  );
+  document.getElementById("btn-college-seal").addEventListener("click", () => pickImage(SEAL_OPTS, "Add college seal"));
 
   // Step navigation
 
@@ -2076,7 +2253,7 @@ async function init() {
 
   defaultLayout = structuredClone(state.layout);
 
-  const lastUsed = getItem(KEYS.TOPSHEET_LAST_USED_LAYOUT);
+  const lastUsed = getItem(KEYS.TEACHER_LAST_USED_LAYOUT);
 
   loadLayoutIntoSheet(lastUsed ? structuredClone(lastUsed) : state.layout);
 
@@ -2155,7 +2332,7 @@ function collectLayout(label) {
 }
 
 function renderLayoutSelect(selectedKey = "__default__") {
-  const lastUsed = getItem(KEYS.TOPSHEET_LAST_USED_LAYOUT);
+  const lastUsed = getItem(KEYS.TEACHER_LAST_USED_LAYOUT);
 
   const select = document.getElementById("layout-select");
 
@@ -2179,7 +2356,7 @@ function renderLayoutSelect(selectedKey = "__default__") {
     select.appendChild(lastUsedOpt);
   }
 
-  Object.entries(getItem(KEYS.TOPSHEET_LAYOUTS) || {}).forEach(([key, layout]) => {
+  Object.entries(getItem(KEYS.TEACHER_LAYOUTS) || {}).forEach(([key, layout]) => {
     const opt = document.createElement("option");
 
     opt.value = key;
@@ -2207,18 +2384,18 @@ function saveLastUsedLayout() {
   clearTimeout(saveLastUsedTimer);
 
   saveLastUsedTimer = setTimeout(() => {
-    setItem(KEYS.TOPSHEET_LAST_USED_LAYOUT, collectLayout("Last used"));
+    setItem(KEYS.TEACHER_LAST_USED_LAYOUT, collectLayout("Last used"));
   }, 400);
 }
 
 function storeNewLayout(name) {
-  const layouts = getItem(KEYS.TOPSHEET_LAYOUTS) || {};
+  const layouts = getItem(KEYS.TEACHER_LAYOUTS) || {};
 
   const key = "layout-" + Date.now();
 
   layouts[key] = collectLayout(name);
 
-  if (!setItem(KEYS.TOPSHEET_LAYOUTS, layouts)) {
+  if (!setItem(KEYS.TEACHER_LAYOUTS, layouts)) {
     showToast("Could not save the layout.", "danger");
 
     return false;
@@ -2234,7 +2411,7 @@ function storeNewLayout(name) {
 function storeOverwrite() {
   const select = document.getElementById("layout-select");
 
-  const layouts = getItem(KEYS.TOPSHEET_LAYOUTS) || {};
+  const layouts = getItem(KEYS.TEACHER_LAYOUTS) || {};
 
   if (select.value === "__default__" || select.value === "__last_used__" || !layouts[select.value]) {
     showToast("This layout cannot be overwritten.", "warning");
@@ -2244,7 +2421,7 @@ function storeOverwrite() {
 
   layouts[select.value] = collectLayout(layouts[select.value].label);
 
-  if (!setItem(KEYS.TOPSHEET_LAYOUTS, layouts)) {
+  if (!setItem(KEYS.TEACHER_LAYOUTS, layouts)) {
     showToast("Could not save the layout.", "danger");
 
     return false;
@@ -2272,7 +2449,7 @@ function overwriteLayout() {
 async function offerToSaveLayout() {
   if (snapshotLayout() === layoutSnapshot) return true;
 
-  const layouts = getItem(KEYS.TOPSHEET_LAYOUTS) || {};
+  const layouts = getItem(KEYS.TEACHER_LAYOUTS) || {};
 
   const selected = layouts[document.getElementById("layout-select").value];
 
@@ -2302,8 +2479,8 @@ function initLayoutControls(hasLastUsed) {
 
     const saved =
       key === "__last_used__"
-        ? getItem(KEYS.TOPSHEET_LAST_USED_LAYOUT)
-        : (getItem(KEYS.TOPSHEET_LAYOUTS) || {})[key];
+        ? getItem(KEYS.TEACHER_LAST_USED_LAYOUT)
+        : (getItem(KEYS.TEACHER_LAYOUTS) || {})[key];
 
     const next = key === "__default__" || !saved ? defaultLayout : saved;
 

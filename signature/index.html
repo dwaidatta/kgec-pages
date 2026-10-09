@@ -24,6 +24,13 @@
 
     <p class="text-muted">Pick a photo or scan of a signature. The ink is extracted with a transparent background, and you choose the crop and the ink colour(s). Everything runs in your browser.</p>
 
+    <div class="btn-group mb-3" role="group" aria-label="Whose signature is this?">
+      <input type="radio" class="btn-check" name="sig-role" id="sig-role-student" value="student" checked>
+      <label class="btn btn-outline-primary" for="sig-role-student"><i class="bi bi-mortarboard"></i> Student</label>
+      <input type="radio" class="btn-check" name="sig-role" id="sig-role-teacher" value="teacher">
+      <label class="btn btn-outline-primary" for="sig-role-teacher"><i class="bi bi-person-badge"></i> Teacher</label>
+    </div>
+
     <div class="card mb-4">
       <div class="card-body" id="flow"></div>
     </div>

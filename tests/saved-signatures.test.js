@@ -8,6 +8,7 @@ import {
   linkSignature,
   listSignaturesForUser,
   listUnlinkedSignatures,
+  setSignatureRole,
 } from "../lib/saved-signatures.js";
 import { KEYS } from "../lib/storage.js";
 
@@ -87,4 +88,32 @@ test("signatures saved as single images are read as one-variant groups", () => {
   const [group] = listSignaturesForUser("u1");
   assert.equal(group.id, "old");
   assert.deepEqual(group.variants, [{ key: "Blue ink", label: "Blue ink", dataUrl: "data:image/png;base64,OLD" }]);
+});
+
+test("signatures carry a role and default to student", () => {
+  const s = saveSignature({ variants: [black()] });
+  const t = saveSignature({ variants: [black("TTT")], role: "teacher" });
+  assert.equal(s.role, "student");
+  assert.equal(t.role, "teacher");
+  assert.deepEqual(listSavedSignatures("teacher").map((g) => g.id), [t.id]);
+});
+
+test("the same image can be saved for both a student and a teacher", () => {
+  saveSignature({ variants: [black()], role: "student" });
+  saveSignature({ variants: [black()], role: "teacher" });
+  assert.equal(listSavedSignatures().length, 2);
+});
+
+test("listUnlinkedSignatures can be limited to one role", () => {
+  saveSignature({ variants: [black()], role: "student" });
+  const t = saveSignature({ variants: [black("TTT")], role: "teacher" });
+  assert.deepEqual(listUnlinkedSignatures([], "teacher").map((g) => g.id), [t.id]);
+});
+
+test("setSignatureRole moves a group to the other role and unlinks it", () => {
+  const a = saveSignature({ variants: [black()], userId: "u1" });
+  assert.ok(setSignatureRole(a.id, "teacher"));
+  const [g] = listSavedSignatures("teacher");
+  assert.equal(g.userId, null);
+  assert.equal(setSignatureRole("missing", "teacher"), false);
 });

@@ -1,6 +1,6 @@
 # KGEC Pages
 
-A static, browser-only toolkit for KGEC students to generate print-ready assignment front pages and manage their submissions. Everything runs client-side — there is no backend or account system; all data (students, layouts, subjects) is stored locally in the browser via `localStorage`.
+A static, browser-only toolkit for KGEC students to generate print-ready assignment front pages and manage their submissions. Everything runs client-side — there is no backend or account system; all data (students, teachers, signatures, stamps, layouts, subjects) is stored locally in the browser via `localStorage`.
 
 This is a student-made project and is **not** an official college resource.
 
@@ -10,7 +10,7 @@ This is a student-made project and is **not** an official college resource.
 | --- | --- | --- |
 | Home | `index.html` | Landing page with links to every tool. |
 | Generate Front Page | `front-page-generator/` | Design a front-page layout, link it to saved student details, preview it live, and export polished PDFs for one or many students at once. |
-| Settings | `settings/` | Manage saved students, saved/default layouts, and the subjects list — import/export students as JSON, refresh the default layout and subjects from the server, and clear locally stored data. |
+| Settings | `settings/` | Manage saved students and teachers, their signatures, stamps, student front-page and teacher topsheet layouts, and the subjects list — import/export people as JSON, refresh the default layout and subjects from the server, and clear locally stored data. |
 | Readymade Pages | `readymade/` | Browse and download pre-made front page templates without building one from scratch. *(Coming soon.)* |
 | MultiMerge | `multimerge/` | Group PDFs, reorder pages by dragging, and export each group as one merged PDF with a custom or default file name. |
 | Topsheet | `topsheet/` | Generate mark-tabulation top sheets for internal examinations, for teachers. *(Coming soon.)* |
@@ -20,7 +20,7 @@ This is a student-made project and is **not** an official college resource.
 ```text
 index.html, index.js          Landing page
 front-page-generator/         Layout editor + PDF export
-settings/                     Local data management (students, layouts, subjects)
+settings/                     Local data management (students, teachers, signatures, stamps, layouts, subjects)
 readymade/                    Readymade templates (placeholder)
 multimerge/                   PDF merging tool
 topsheet/                     Mark-tabulation top sheets for teachers (placeholder)

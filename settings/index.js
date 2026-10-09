@@ -1,85 +1,204 @@
-import { getItem, setItem, removeItem, KEYS } from "../lib/storage.js";
+import { getItem, setItem, removeItem, KEYS, roleOf } from "../lib/storage.js";
 import { renderNavbar } from "../lib/navbar.js";
-import { showToast, confirmAndRun, bindSelectAll } from "../lib/ui.js";
+import { showToast, confirmAndRun } from "../lib/ui.js";
 import { getDefaultLayout, getStoredDefaultLayout } from "../lib/default-layout.js";
 import { refreshSubjects } from "../lib/subjects.js";
-import { loadUsers, saveUsers, generateUserId, USER_FIELDS } from "../lib/users.js";
+import { loadUsers, saveUsers, generateUserId, ROLE_FIELDS } from "../lib/users.js";
 import {
   listSignaturesForUser,
   listUnlinkedSignatures,
   linkSignature,
+  setSignatureRole,
   removeSavedSignature,
 } from "../lib/saved-signatures.js";
+import { listStamps, renameStamp, removeStamp } from "../lib/saved-stamps.js";
 import { populateStudentSelect } from "../lib/student-link.js";
 renderNavbar("../", "settings");
 
-// ---------- USERS ----------
+// What differs between the two kinds of people and the two kinds of layouts.
+const PEOPLE = [
+  {
+    role: "student",
+    title: "Students",
+    icon: "bi-mortarboard",
+    singular: "Student",
+    emptyTitle: "No students yet",
+    exportFile: "kgec_pages_students_export.json",
+  },
+  {
+    role: "teacher",
+    title: "Teachers",
+    icon: "bi-person-badge",
+    singular: "Teacher",
+    emptyTitle: "No teachers yet",
+    exportFile: "kgec_pages_teachers_export.json",
+  },
+];
 
-function renderUsers() {
-  const users = loadUsers();
-  const container = document.getElementById("user-list");
-  const emptyState = document.getElementById("empty-state");
+const LAYOUT_KINDS = [
+  {
+    id: "student",
+    title: "Student front page layouts",
+    icon: "bi-file-earmark-text",
+    layoutsKey: KEYS.STUDENT_LAYOUTS,
+    lastKey: KEYS.STUDENT_LAST_USED_LAYOUT,
+    hint: "Save a layout from the Front Page Generator to see it here.",
+    hasDefault: true,
+  },
+  {
+    id: "teacher",
+    title: "Teacher topsheet layouts",
+    icon: "bi-layout-text-window",
+    layoutsKey: KEYS.TEACHER_LAYOUTS,
+    lastKey: KEYS.TEACHER_LAST_USED_LAYOUT,
+    hint: "Save a layout from the Topsheet Maker to see it here.",
+    hasDefault: false,
+  },
+];
 
-  document.getElementById("users-count-badge").textContent = users.length;
-  container.innerHTML = "";
-  emptyState.classList.toggle("d-none", users.length !== 0);
+// Clones a <template> and returns its card plus the elements marked data-ref.
+function cloneCard(templateId) {
+  const card = document.getElementById(templateId).content.firstElementChild.cloneNode(true);
+  const refs = {};
+  card.querySelectorAll("[data-ref]").forEach((el) => (refs[el.dataset.ref] = el));
+  return { card, refs };
+}
 
-  users.forEach((user) => {
-    const col = document.createElement("div");
-    col.className = "col-sm-6 col-lg-4";
+// Gives the card's body and its toggle button a shared collapse id.
+function linkCollapse(refs, id) {
+  refs.body.id = id;
+  refs.toggle.dataset.bsTarget = `#${id}`;
+}
 
-    const fieldsHtml = USER_FIELDS.map(
-      (f) => `
-        <div class="mb-2">
-          <label class="form-label small text-muted mb-0">${f.label}</label>
-          <input class="form-control field-${f.key}" placeholder="${f.label}" value="${user[f.key] || ""}">
-        </div>
-      `
-    ).join("");
+function bindSelectAll(selectAll, items) {
+  selectAll.addEventListener("change", () => items().forEach((cb) => (cb.checked = selectAll.checked)));
+}
 
-    col.innerHTML = `
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <input class="form-check-input user-checkbox" type="checkbox" data-id="${user.id}">
-            <button class="btn btn-sm btn-outline-danger btn-delete-single" data-id="${user.id}">
-              <i class="bi bi-trash"></i>
-            </button>
-          </div>
-          ${fieldsHtml}
-          <div class="small text-muted mt-3 mb-1">
-            <i class="bi bi-pen"></i> Signatures
-            <span class="badge rounded-pill text-bg-primary ms-1 user-sig-count">0</span>
-          </div>
-          <div class="d-flex flex-wrap gap-3 pt-2 pe-2 user-sigs"></div>
-        </div>
-      </div>
-    `;
+// ---------- PEOPLE ----------
 
-    const sigs = listSignaturesForUser(user.id);
-    col.querySelector(".user-sig-count").textContent = sigs.length;
-    const sigBox = col.querySelector(".user-sigs");
-    if (sigs.length === 0) {
-      sigBox.innerHTML = '<span class="small text-muted">None linked yet. Link one from the Signature Extractor.</span>';
-    } else {
-      sigBox.replaceChildren(...sigs.map((s) => signatureThumb(s)));
-    }
+const peopleViews = {};
 
-    USER_FIELDS.forEach((f) => {
-      col.querySelector(`.field-${f.key}`).addEventListener("input", (e) => {
-        updateUserField(user.id, f.key, e.target.value);
-      });
+// People whose card the user has opened up; kept across re-renders.
+const expandedPeople = new Set();
+
+function buildPeopleCards() {
+  const host = document.getElementById("people-sections");
+
+  for (const cfg of PEOPLE) {
+    const { card, refs } = cloneCard("people-card-tpl");
+    linkCollapse(refs, `people-${cfg.role}-body`);
+    refs.icon.classList.add(cfg.icon);
+    refs.title.textContent = cfg.title;
+    refs["add-label"].textContent = `Add ${cfg.singular}`;
+    refs["select-all-label"].textContent = "Select All";
+    refs["empty-icon"].classList.add(cfg.icon);
+    refs["empty-title"].textContent = cfg.emptyTitle;
+    refs["empty-text"].textContent = `Click "Add ${cfg.singular}" to create one.`;
+
+    refs.add.addEventListener("click", () => openAddPerson(cfg));
+    refs.delete.addEventListener("click", () => {
+      const ids = [...refs.list.querySelectorAll(".person-checkbox:checked")].map((cb) => cb.dataset.id);
+      deletePeopleByIds(ids);
     });
-
-    col.querySelector(".btn-delete-single").addEventListener("click", () => {
-      deleteUsersByIds([user.id]);
+    refs.export.addEventListener("click", () => exportPeople(cfg));
+    refs.import.addEventListener("click", () => refs["import-file"].click());
+    refs["import-file"].addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) importPeople(cfg, file);
+      e.target.value = "";
     });
+    refs.clear.addEventListener("click", () => clearPeople(cfg));
+    bindSelectAll(refs["select-all"], () => refs.list.querySelectorAll(".person-checkbox"));
 
-    container.appendChild(col);
-  });
+    peopleViews[cfg.role] = refs;
+    host.appendChild(card);
+  }
+}
 
-  // Student list changes affect which signatures count as unlinked.
+function renderPeople() {
+  for (const cfg of PEOPLE) renderPeopleCard(cfg, peopleViews[cfg.role]);
+
+  // The people list decides which signatures count as unlinked.
   renderUnlinkedSignatures();
+}
+
+function renderPeopleCard(cfg, refs) {
+  const users = loadUsers(cfg.role);
+  const fields = ROLE_FIELDS[cfg.role];
+
+  refs.count.textContent = users.length;
+  refs.empty.classList.toggle("d-none", users.length !== 0);
+  refs["select-all"].checked = false;
+
+  refs.list.replaceChildren(
+    ...users.map((user) => {
+      const col = document.createElement("div");
+      col.className = "col-sm-6 col-lg-4";
+
+      col.innerHTML = `
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <input class="form-check-input person-checkbox" type="checkbox">
+              <button class="btn btn-sm btn-outline-danger btn-delete-single" title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="person-body">
+              <div class="person-fields"></div>
+              <div class="small text-muted mt-3 mb-1">
+                <i class="bi bi-pen"></i> Signatures
+                <span class="badge rounded-pill text-bg-primary ms-1 user-sig-count">0</span>
+              </div>
+              <div class="d-flex flex-wrap gap-3 pt-2 pe-2 user-sigs"></div>
+            </div>
+            <button type="button" class="btn btn-sm btn-link p-0 mt-2 person-toggle"></button>
+          </div>
+        </div>
+      `;
+      col.querySelector(".person-checkbox").dataset.id = user.id;
+
+      col.querySelector(".person-fields").replaceChildren(
+        ...fields.map((f) => {
+          const wrap = document.createElement("div");
+          wrap.className = "mb-2";
+          wrap.innerHTML = `<label class="form-label small text-muted mb-0"></label><input class="form-control">`;
+          wrap.querySelector("label").textContent = f.label;
+          const input = wrap.querySelector("input");
+          input.placeholder = f.label;
+          input.value = user[f.key] || "";
+          input.addEventListener("input", (e) => updatePersonField(user.id, f.key, e.target.value));
+          return wrap;
+        })
+      );
+
+      const sigs = listSignaturesForUser(user.id);
+      col.querySelector(".user-sig-count").textContent = sigs.length;
+      const sigBox = col.querySelector(".user-sigs");
+      if (sigs.length === 0) {
+        sigBox.innerHTML = '<span class="small text-muted">None linked yet. Link one from the Signature Extractor.</span>';
+      } else {
+        sigBox.replaceChildren(...sigs.map((s) => signatureThumb(s)));
+      }
+
+      // Cards stay a fixed height so many signatures do not stretch the page.
+      const body = col.querySelector(".person-body");
+      const toggle = col.querySelector(".person-toggle");
+      const sync = () => {
+        const open = expandedPeople.has(user.id);
+        body.classList.toggle("person-collapsed", !open);
+        toggle.textContent = open ? "Show less" : "Show more";
+      };
+      toggle.addEventListener("click", () => {
+        if (!expandedPeople.delete(user.id)) expandedPeople.add(user.id);
+        sync();
+      });
+      sync();
+
+      col.querySelector(".btn-delete-single").addEventListener("click", () => deletePeopleByIds([user.id]));
+      return col;
+    })
+  );
 }
 
 // Every variant of a signature in one tile, with a single delete button for the group.
@@ -112,12 +231,12 @@ function variantPreview(variant, maxHeight = 50) {
 async function deleteSignature(id) {
   const done = await confirmAndRun("Delete this signature from this device?", () => {
     removeSavedSignature(id);
-    renderUsers();
+    renderPeople();
   });
   if (done) showToast("Signature deleted.", "success");
 }
 
-function updateUserField(id, key, value) {
+function updatePersonField(id, key, value) {
   const users = loadUsers();
   const user = users.find((u) => u.id === id);
   if (!user) return;
@@ -126,92 +245,99 @@ function updateUserField(id, key, value) {
   if (key === "name" || key === "roll") renderUnlinkedSignatures(); // keeps the link dropdowns current
 }
 
-async function addUserFromModal() {
-  const newUser = {
-    id: generateUserId(),
-    name: document.getElementById("new-user-name").value.trim(),
-    roll: document.getElementById("new-user-roll").value.trim(),
-    reg: document.getElementById("new-user-reg").value.trim(),
-    dept: document.getElementById("new-user-dept").value.trim(),
-    course: document.getElementById("new-user-course").value.trim(),
-    year: document.getElementById("new-user-year").value.trim(),
-    sem: document.getElementById("new-user-sem").value.trim(),
-  };
+function openAddPerson(cfg) {
+  const form = document.getElementById("add-person-form");
+  form.dataset.role = cfg.role;
+  document.getElementById("add-person-title").textContent = `Add ${cfg.singular}`;
+  form.replaceChildren(
+    ...ROLE_FIELDS[cfg.role].map((f) => {
+      const wrap = document.createElement("div");
+      wrap.className = "mb-2";
+      wrap.innerHTML = `<label class="form-label"></label><input type="text" class="form-control">`;
+      wrap.querySelector("label").textContent = f.label;
+      const input = wrap.querySelector("input");
+      input.name = f.key;
+      input.required = f.key === "name";
+      return wrap;
+    })
+  );
+  bootstrap.Modal.getOrCreateInstance(document.getElementById("addPersonModal")).show();
+}
 
-  if (!newUser.name) {
+function addPersonFromModal() {
+  const form = document.getElementById("add-person-form");
+  const role = form.dataset.role;
+  const person = { id: generateUserId(), role };
+  ROLE_FIELDS[role].forEach((f) => (person[f.key] = form.elements[f.key].value.trim()));
+
+  if (!person.name) {
     showToast("Name is required.", "warning");
     return;
   }
 
-  const users = loadUsers();
-  users.push(newUser);
-  saveUsers(users);
-  renderUsers();
-
-  document.getElementById("add-user-form").reset();
-
-  const modalEl = document.getElementById("addUserModal");
-  bootstrap.Modal.getInstance(modalEl).hide();
-  showToast("User added.", "success");
+  saveUsers([...loadUsers(), person]);
+  renderPeople();
+  bootstrap.Modal.getInstance(document.getElementById("addPersonModal")).hide();
+  showToast(`${role === "teacher" ? "Teacher" : "Student"} added.`, "success");
 }
 
-async function deleteUsersByIds(ids) {
+async function deletePeopleByIds(ids) {
   if (ids.length === 0) return;
-  const done = await confirmAndRun(`Delete ${ids.length} user(s)? This cannot be undone.`, () => {
-    saveUsers(loadUsers().filter((u) => !ids.includes(u.id)));
-    renderUsers();
-  });
-  if (done) showToast(`Deleted ${ids.length} user(s).`, "success");
+  const done = await confirmAndRun(
+    `Delete ${ids.length} record(s)? Their signatures stay on this device as unlinked. This cannot be undone.`,
+    () => {
+      saveUsers(loadUsers().filter((u) => !ids.includes(u.id)));
+      renderPeople();
+    }
+  );
+  if (done) showToast(`Deleted ${ids.length} record(s).`, "success");
 }
 
-function deleteSelectedUsers() {
-  const checkedIds = [...document.querySelectorAll(".user-checkbox:checked")].map((cb) => cb.dataset.id);
-  deleteUsersByIds(checkedIds);
-}
-
-function exportUsers() {
-  const users = loadUsers();
-  const blob = new Blob([JSON.stringify(users, null, 2)], { type: "application/json" });
+function exportPeople(cfg) {
+  const blob = new Blob([JSON.stringify(loadUsers(cfg.role), null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "kgec_pages_users_export.json";
+  a.download = cfg.exportFile;
   a.click();
 
   URL.revokeObjectURL(url);
-  showToast("Exported users.", "success");
+  showToast(`Exported ${cfg.title.toLowerCase()}.`, "success");
 }
 
-function importUsers(file) {
+// Replaces this kind of person only; the other kind is left alone.
+function importPeople(cfg, file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const imported = JSON.parse(reader.result);
       if (!Array.isArray(imported)) throw new Error("Invalid file format");
-      saveUsers(imported);
-      renderUsers();
-      showToast("Users imported.", "success");
+      const others = loadUsers().filter((u) => roleOf(u) !== cfg.role);
+      saveUsers([...others, ...imported.map((u) => ({ ...u, role: cfg.role }))]);
+      renderPeople();
+      showToast(`${cfg.title} imported.`, "success");
     } catch (err) {
-      showToast("Invalid users file.", "danger");
+      showToast(`Invalid ${cfg.title.toLowerCase()} file.`, "danger");
     }
   };
   reader.readAsText(file);
 }
 
-async function clearUsers() {
-  const done = await confirmAndRun("Clear all locally saved users? This cannot be undone.", () => {
-    removeItem(KEYS.USERS);
-    renderUsers();
+async function clearPeople(cfg) {
+  const done = await confirmAndRun(`Clear all locally saved ${cfg.title.toLowerCase()}? This cannot be undone.`, () => {
+    const others = loadUsers().filter((u) => roleOf(u) !== cfg.role);
+    if (others.length) saveUsers(others);
+    else removeItem(KEYS.USERS);
+    renderPeople();
   });
-  if (done) showToast("Users storage cleared.", "success");
+  if (done) showToast(`${cfg.title} cleared.`, "success");
 }
 
 // ---------- UNLINKED SIGNATURES ----------
 
 function renderUnlinkedSignatures() {
-  const users = loadUsers();
-  const sigs = listUnlinkedSignatures(users);
+  const sigs = listUnlinkedSignatures(loadUsers());
   const container = document.getElementById("unlinked-sig-list");
 
   document.getElementById("unlinked-sig-count-badge").textContent = sigs.length;
@@ -225,25 +351,35 @@ function renderUnlinkedSignatures() {
         <div class="card">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
-              <span class="badge text-bg-secondary">Unlinked</span>
+              <select class="form-select form-select-sm w-auto role-select" aria-label="Whose signature is this?">
+                <option value="student">Student's</option>
+                <option value="teacher">Teacher's</option>
+              </select>
               <button type="button" class="btn btn-sm btn-outline-danger" title="Delete signature">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
             <div class="border rounded p-2 mb-2 bg-white d-flex justify-content-center gap-2 sig-variants"></div>
-            <select class="form-select form-select-sm" aria-label="Link to a student"></select>
+            <select class="form-select form-select-sm link-select"></select>
           </div>
         </div>
       `;
       col.querySelector(".sig-variants").replaceChildren(...sig.variants.map((v) => variantPreview(v, 70)));
 
-      const select = col.querySelector("select");
-      populateStudentSelect(select, { unlinkedLabel: "Link to a student..." });
+      const roleSelect = col.querySelector(".role-select");
+      roleSelect.value = sig.role;
+      roleSelect.addEventListener("change", () => {
+        if (setSignatureRole(sig.id, roleSelect.value)) renderUnlinkedSignatures();
+        else showToast("Could not change the signature.", "danger");
+      });
+
+      const select = col.querySelector(".link-select");
+      populateStudentSelect(select, { unlinkedLabel: `Link to a ${sig.role}...`, role: sig.role });
       select.addEventListener("change", () => {
         if (!select.value) return;
         if (linkSignature(sig.id, select.value)) {
           showToast("Signature linked.", "success");
-          renderUsers();
+          renderPeople();
         } else {
           showToast("Could not link the signature.", "danger");
         }
@@ -255,110 +391,163 @@ function renderUnlinkedSignatures() {
   );
 }
 
-// ---------- DEFAULT LAYOUT ----------
+// ---------- STAMPS ----------
 
-function renderDefaultLayoutInfo() {
-  const layout = getStoredDefaultLayout();
-  const el = document.getElementById("default-layout-info");
-  const badge = document.getElementById("default-layout-badge");
+function renderStamps() {
+  const stamps = listStamps();
+  document.getElementById("stamps-count-badge").textContent = stamps.length;
+  document.getElementById("stamps-empty").classList.toggle("d-none", stamps.length !== 0);
 
-  el.textContent = layout ? `Loaded: ${layout.label || "Default"} (locked, read-only)` : "Not loaded yet.";
-  badge.textContent = layout ? "Loaded" : "Not loaded";
-  badge.className = `badge ms-1 ${layout ? "text-bg-primary" : "text-bg-secondary"}`;
+  document.getElementById("stamp-list").replaceChildren(
+    ...stamps.map((stamp) => {
+      const col = document.createElement("div");
+      col.className = "col-sm-6 col-lg-4";
+      col.innerHTML = `
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-end mb-2">
+              <button type="button" class="btn btn-sm btn-outline-danger" title="Delete stamp">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="border rounded p-2 mb-2 bg-white d-flex justify-content-center align-items-center" style="height:90px;">
+              <img alt="" style="max-width:100%;max-height:80px;">
+            </div>
+            <input class="form-control form-control-sm" aria-label="Stamp name">
+          </div>
+        </div>
+      `;
+      col.querySelector("img").src = stamp.dataUrl;
+      const input = col.querySelector("input");
+      input.value = stamp.label;
+      input.addEventListener("change", () => {
+        if (!renameStamp(stamp.id, input.value.trim() || "Stamp")) showToast("Could not rename the stamp.", "danger");
+      });
+      col.querySelector("button").addEventListener("click", async () => {
+        const done = await confirmAndRun("Delete this stamp from this device?", () => {
+          removeStamp(stamp.id);
+          renderStamps();
+        });
+        if (done) showToast("Stamp deleted.", "success");
+      });
+      return col;
+    })
+  );
 }
 
-async function refreshDefaultLayout() {
-  await getDefaultLayout();
-  renderDefaultLayoutInfo();
-  showToast("Default layout refreshed from server.", "success");
+// ---------- LAYOUTS ----------
+
+const layoutViews = {};
+
+function buildLayoutCards() {
+  const host = document.getElementById("layout-sections");
+
+  for (const kind of LAYOUT_KINDS) {
+    const { card, refs } = cloneCard("layout-card-tpl");
+    linkCollapse(refs, `layouts-${kind.id}-body`);
+    refs.icon.classList.add(kind.icon);
+    refs.title.textContent = kind.title;
+    refs["select-all-label"].textContent = "Select All";
+    refs["default-wrap"].classList.toggle("d-none", !kind.hasDefault);
+
+    refs["default-refresh"].addEventListener("click", refreshDefaultLayout);
+    refs["last-delete"].addEventListener("click", () => deleteLastUsed(kind));
+    refs.delete.addEventListener("click", () => {
+      const keys = [...refs.list.querySelectorAll(".layout-checkbox:checked")].map((cb) => cb.dataset.key);
+      deleteLayoutsByKeys(kind, keys);
+    });
+    refs["delete-all"].addEventListener("click", () =>
+      deleteLayoutsByKeys(kind, Object.keys(getItem(kind.layoutsKey) || {}))
+    );
+    bindSelectAll(refs["select-all"], () => refs.list.querySelectorAll(".layout-checkbox"));
+
+    layoutViews[kind.id] = refs;
+    host.appendChild(card);
+  }
 }
 
-// ---------- SAVED LAYOUTS ----------
+function renderLayoutCard(kind) {
+  const refs = layoutViews[kind.id];
+  const entries = Object.entries(getItem(kind.layoutsKey) || {});
+  refs.count.textContent = entries.length;
+  refs["select-all"].checked = false;
 
-function renderLayouts() {
-  const layouts = getItem(KEYS.LAYOUTS) || {};
-  const container = document.getElementById("layout-list");
-  container.innerHTML = "";
+  if (kind.hasDefault) {
+    const layout = getStoredDefaultLayout();
+    refs["default-info"].textContent = layout ? `${layout.label || "Default"} (locked, read-only)` : "";
+    refs["default-badge"].textContent = layout ? "Loaded" : "Not loaded";
+    refs["default-badge"].className = `badge ms-1 ${layout ? "text-bg-primary" : "text-bg-secondary"}`;
+  }
 
-  const entries = Object.entries(layouts);
-  document.getElementById("layouts-count-badge").textContent = entries.length;
+  const lastUsed = getItem(kind.lastKey);
+  refs["last-info"].textContent = lastUsed ? "A last-used layout state is saved." : "No last-used layout saved yet.";
+  refs["last-badge"].textContent = lastUsed ? "Saved" : "Empty";
+  refs["last-badge"].className = `badge ms-1 ${lastUsed ? "text-bg-primary" : "text-bg-secondary"}`;
 
   if (entries.length === 0) {
-    container.innerHTML = `
+    refs.list.innerHTML = `
       <div class="col-12">
         <div class="empty-state">
           <i class="bi bi-collection empty-state-icon"></i>
           <h5>No saved layouts</h5>
-          <p class="mb-0">Save a layout from the Front Page Generator to see it here.</p>
+          <p class="mb-0"></p>
         </div>
       </div>
     `;
+    refs.list.querySelector("p").textContent = kind.hint;
     return;
   }
 
-  entries.forEach(([key, layout]) => {
-    const col = document.createElement("div");
-    col.className = "col-sm-6 col-lg-4";
-    col.innerHTML = `
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <input class="form-check-input layout-checkbox" type="checkbox" data-key="${key}">
-            <button class="btn btn-sm btn-outline-danger btn-delete-single-layout" data-key="${key}">
-              <i class="bi bi-trash"></i>
-            </button>
+  refs.list.replaceChildren(
+    ...entries.map(([key, layout]) => {
+      const col = document.createElement("div");
+      col.className = "col-sm-6 col-lg-4";
+      col.innerHTML = `
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <input class="form-check-input layout-checkbox" type="checkbox">
+              <button class="btn btn-sm btn-outline-danger" title="Delete layout"><i class="bi bi-trash"></i></button>
+            </div>
+            <h6 class="mt-2 mb-1 layout-label"></h6>
+            <p class="text-muted small mb-0 layout-key"></p>
           </div>
-          <h6 class="mt-2 mb-1">${layout.label || key}</h6>
-          <p class="text-muted small mb-0">Key: ${key}</p>
         </div>
-      </div>
-    `;
-
-    col.querySelector(".btn-delete-single-layout").addEventListener("click", () => {
-      deleteLayoutsByKeys([key]);
-    });
-
-    container.appendChild(col);
-  });
+      `;
+      col.querySelector(".layout-checkbox").dataset.key = key;
+      col.querySelector(".layout-label").textContent = layout.label || key;
+      col.querySelector(".layout-key").textContent = `Key: ${key}`;
+      col.querySelector("button").addEventListener("click", () => deleteLayoutsByKeys(kind, [key]));
+      return col;
+    })
+  );
 }
 
-async function deleteLayoutsByKeys(keys) {
+function renderLayouts() {
+  LAYOUT_KINDS.forEach(renderLayoutCard);
+}
+
+async function refreshDefaultLayout() {
+  await getDefaultLayout();
+  renderLayouts();
+  showToast("Default layout refreshed from server.", "success");
+}
+
+async function deleteLayoutsByKeys(kind, keys) {
   if (keys.length === 0) return;
   const done = await confirmAndRun(`Delete ${keys.length} layout(s)? This cannot be undone.`, () => {
-    const layouts = getItem(KEYS.LAYOUTS) || {};
+    const layouts = getItem(kind.layoutsKey) || {};
     keys.forEach((k) => delete layouts[k]);
-    setItem(KEYS.LAYOUTS, layouts);
-    renderLayouts();
+    setItem(kind.layoutsKey, layouts);
+    renderLayoutCard(kind);
   });
   if (done) showToast(`Deleted ${keys.length} layout(s).`, "success");
 }
 
-function deleteSelectedLayouts() {
-  const checkedKeys = [...document.querySelectorAll(".layout-checkbox:checked")].map((cb) => cb.dataset.key);
-  deleteLayoutsByKeys(checkedKeys);
-}
-
-async function deleteAllLayouts() {
-  const layouts = getItem(KEYS.LAYOUTS) || {};
-  deleteLayoutsByKeys(Object.keys(layouts));
-}
-
-// ---------- LAST USED LAYOUT ----------
-
-function renderLastUsedInfo() {
-  const lastUsed = getItem(KEYS.LAST_USED_LAYOUT);
-  const el = document.getElementById("last-used-layout-info");
-  const badge = document.getElementById("last-used-layout-badge");
-
-  el.textContent = lastUsed ? "A last-used layout state is saved." : "No last-used layout saved yet.";
-  badge.textContent = lastUsed ? "Saved" : "Empty";
-  badge.className = `badge ms-1 ${lastUsed ? "text-bg-primary" : "text-bg-secondary"}`;
-}
-
-async function deleteLastUsedLayout() {
+async function deleteLastUsed(kind) {
   const done = await confirmAndRun("Delete the last-used layout state? This cannot be undone.", () => {
-    removeItem(KEYS.LAST_USED_LAYOUT);
-    renderLastUsedInfo();
+    removeItem(kind.lastKey);
+    renderLayoutCard(kind);
   });
   if (done) showToast("Last-used layout deleted.", "success");
 }
@@ -380,7 +569,9 @@ function renderSubjects() {
 
   entries.forEach(([code, name]) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="font-monospace">${code}</td><td>${name}</td>`;
+    tr.innerHTML = `<td class="font-monospace"></td><td></td>`;
+    tr.children[0].textContent = code;
+    tr.children[1].textContent = name;
     tbody.appendChild(tr);
   });
 }
@@ -394,37 +585,22 @@ async function refreshSubjectsList() {
 // ---------- INIT ----------
 
 function init() {
-  renderUsers();
-  renderDefaultLayoutInfo();
+  buildPeopleCards();
+  buildLayoutCards();
+
+  renderPeople();
+  renderStamps();
   renderLayouts();
-  renderLastUsedInfo();
   renderSubjects();
 
-  document.getElementById("btn-save-new-user").addEventListener("click", addUserFromModal);
-  document.getElementById("btn-delete-user").addEventListener("click", deleteSelectedUsers);
-  document.getElementById("btn-export").addEventListener("click", exportUsers);
-
-  document.getElementById("btn-import").addEventListener("click", () => {
-    document.getElementById("input-import-file").click();
+  document.getElementById("btn-save-new-person").addEventListener("click", addPersonFromModal);
+  document.getElementById("add-person-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    addPersonFromModal();
   });
-
-  document.getElementById("input-import-file").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) importUsers(file);
-    e.target.value = "";
-  });
-
-  bindSelectAll("select-all-checkbox", ".user-checkbox");
-
-  document.getElementById("btn-refresh-default-layout").addEventListener("click", refreshDefaultLayout);
-  document.getElementById("btn-clear-users").addEventListener("click", clearUsers);
-  document.getElementById("btn-delete-layout").addEventListener("click", deleteSelectedLayouts);
-  document.getElementById("btn-delete-all-layouts").addEventListener("click", deleteAllLayouts);
-  bindSelectAll("select-all-layouts-checkbox", ".layout-checkbox");
-  document.getElementById("btn-delete-last-used").addEventListener("click", deleteLastUsedLayout);
   document.getElementById("btn-refresh-subjects").addEventListener("click", refreshSubjectsList);
 }
 
-if (document.getElementById("user-list")) {
+if (document.getElementById("people-sections")) {
   init();
 }

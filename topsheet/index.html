@@ -701,13 +701,29 @@
 
             <div class="card-body d-flex flex-column gap-2">
 
+              <div>
+                <label class="form-label small mb-1" for="ts-teacher-select">Fill from a saved teacher</label>
+                <select id="ts-teacher-select" class="form-select form-select-sm"></select>
+                <div id="ts-teacher-none" class="form-text d-none">
+                  No teachers saved yet. Add one in Settings to fill the name and mobile number.
+                </div>
+              </div>
+
+              <div id="ts-teacher-fields" class="d-flex flex-wrap gap-2"></div>
+
+              <div class="small text-muted">Click a saved signature to put it on the sheet:</div>
+
+              <div id="ts-teacher-sig-list" class="d-flex flex-wrap gap-2"></div>
+
+              <div id="ts-teacher-sig-empty" class="small text-muted">No signatures to show. Choose a teacher to see theirs.</div>
+
               <button
                 type="button"
                 id="btn-teacher-sig"
-                class="btn btn-outline-primary"
+                class="btn btn-sm btn-outline-primary"
               >
-                <i class="bi bi-image"></i>
-                Add signature (from an image)
+                <i class="bi bi-plus-lg"></i>
+                Add a new signature (from an image)
               </button>
 
 
@@ -766,13 +782,19 @@
 
             <div class="card-body d-flex flex-column gap-2">
 
+              <div class="small text-muted">Click a saved stamp to put it on the sheet:</div>
+
+              <div id="ts-stamp-list" class="d-flex flex-wrap gap-2"></div>
+
+              <div id="ts-stamp-empty" class="small text-muted">No saved stamps yet.</div>
+
               <button
                 type="button"
                 id="btn-college-seal"
-                class="btn btn-outline-primary"
+                class="btn btn-sm btn-outline-primary"
               >
-                <i class="bi bi-image"></i>
-                Add seal (from an image)
+                <i class="bi bi-plus-lg"></i>
+                Add a new seal (from an image)
               </button>
 
 

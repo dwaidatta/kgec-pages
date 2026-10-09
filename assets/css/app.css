@@ -357,6 +357,12 @@ a.topbar-chip:focus {
   font-weight: 700;
 }
 
+/* A collapsed card is only its header: no divider line, and round its bottom corners. */
+.card-header:has(+ .collapse:not(.show):not(.collapsing)) {
+  border-bottom-color: transparent;
+  border-radius: inherit;
+}
+
 .card-header i.bi {
   color: var(--bs-primary);
   margin-right: 0.35rem;
@@ -368,27 +374,27 @@ a.topbar-chip:focus {
   margin-right: 0;
 }
 
-#user-list .card,
-#layout-list .card {
+#people-sections .row .card,
+#layout-sections .row .card {
   transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 
-#user-list .card:hover,
-#layout-list .card:hover {
+#people-sections .row .card:hover,
+#layout-sections .row .card:hover {
   box-shadow: var(--kg-shadow-md);
   transform: translateY(-1px);
 }
 
-#user-list .card:has(.user-checkbox:checked),
-#layout-list .card:has(.layout-checkbox:checked) {
+#people-sections .row .card:has(.person-checkbox:checked),
+#layout-sections .row .card:has(.layout-checkbox:checked) {
   border-color: var(--bs-primary);
   background: var(--kg-hover);
   box-shadow: 0 0 0 2px var(--bs-primary) inset;
 }
 
 .card-title,
-#user-list h6,
-#layout-list h6 {
+#people-sections h6,
+#layout-sections h6 {
   font-weight: 700;
 }
 
@@ -1133,4 +1139,20 @@ a.topbar-chip:focus {
 }
 .sig-adjust .form-check-label {
   cursor: pointer;
+}
+
+/* Settings: person cards stay a fixed height until opened. */
+.person-body.person-collapsed {
+  max-height: 14rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.person-body.person-collapsed::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2.5rem;
+  background: linear-gradient(to bottom, transparent, var(--bs-card-bg, #fff));
+  pointer-events: none;
 }

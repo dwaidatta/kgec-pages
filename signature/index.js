@@ -24,27 +24,39 @@ function renderResult({ key, label, dataUrl }) {
   return col;
 }
 
-const flow = mountSignatureFlow(document.getElementById("flow"), {
-  doneLabel: "Get signature",
-  offerSave: true, // shows the "link to a student" choice; saving is automatic
-  onDone: (variants, { userId }) => {
-    // Both ink colours are stored as one group linked to the student.
-    const failed = !saveSignature({ variants, userId });
-    if (failed) {
-      showToast("Could not save on this device (storage full or blocked).", "warning");
-    }
+let flow = null;
 
-    const status = document.getElementById("save-status");
-    status.replaceChildren();
-    if (!failed) {
-      status.append("Saved on this device: ", linkBadge(userId));
-    }
+// The link choice lists students or teachers, so the flow is mounted again when the owner changes.
+function mountFlow(role) {
+  flow?.destroy();
+  flow = mountSignatureFlow(document.getElementById("flow"), {
+    doneLabel: "Get signature",
+    offerSave: true, // shows the "link to a person" choice; saving is automatic
+    role,
+    onDone: (variants, { userId }) => {
+      // Both ink colours are stored as one group linked to the person.
+      const failed = !saveSignature({ variants, userId, role });
+      if (failed) {
+        showToast("Could not save on this device (storage full or blocked).", "warning");
+      }
 
-    resultsEl.replaceChildren(...variants.map(renderResult));
-    document.getElementById("results-section").classList.remove("d-none");
-    flow.reset();
-  },
-});
+      const status = document.getElementById("save-status");
+      status.replaceChildren();
+      if (!failed) {
+        status.append(`Saved on this device (${role}): `, linkBadge(userId));
+      }
+
+      resultsEl.replaceChildren(...variants.map(renderResult));
+      document.getElementById("results-section").classList.remove("d-none");
+      flow.reset();
+    },
+  });
+}
+
+document.querySelectorAll('input[name="sig-role"]').forEach((radio) =>
+  radio.addEventListener("change", () => mountFlow(radio.value))
+);
+mountFlow("student");
 
 // Download OpenCV (~8 MB) in the background so the popup is ready sooner.
 preloadSignatureEngine().catch(() => showToast("Could not preload the signature engine. It will load when needed.", "warning"));

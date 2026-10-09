@@ -24,106 +24,57 @@
       <a href="../index.html" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
     </div>
 
-    <!-- USERS -->
-    <section class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span><i class="bi bi-people"></i> Users
-          <span id="users-count-badge" class="badge rounded-pill text-bg-primary ms-1">0</span>
-        </span>
-        <button id="btn-clear-users" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> Clear local storage
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
-          <button id="btn-add-user" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-            <i class="bi bi-plus-lg"></i> Add User</button>
-          <button id="btn-delete-user" class="btn btn-danger">Delete Selected</button>
-          <button id="btn-import" class="btn btn-secondary">Import</button>
-          <button id="btn-export" class="btn btn-secondary">Export</button>
-          <input type="file" id="input-import-file" accept="application/json" hidden>
-
-          <div class="form-check ms-sm-3">
-            <input class="form-check-input" type="checkbox" id="select-all-checkbox">
-            <label class="form-check-label" for="select-all-checkbox">Select All</label>
-          </div>
-        </div>
-
-        <div id="empty-state" class="empty-state d-none">
-          <i class="bi bi-people empty-state-icon"></i>
-          <h5>No users yet</h5>
-          <p class="mb-0">Click "Add User" to create one.</p>
-        </div>
-
-        <div id="user-list" class="row g-3"></div>
-      </div>
-    </section>
+    <!-- STUDENTS and TEACHERS (cards built from #people-card-tpl) -->
+    <div id="people-sections"></div>
 
     <!-- UNLINKED SIGNATURES -->
     <section class="card mb-4">
-      <div class="card-header">
-        <i class="bi bi-pen"></i> Unlinked Student Signatures
-        <span id="unlinked-sig-count-badge" class="badge rounded-pill text-bg-primary ms-1">0</span>
-      </div>
-      <div class="card-body">
-        <p class="text-muted small">Signatures saved on this device that are not linked to a student record. Pick a student to link one.</p>
-        <div id="unlinked-sig-empty" class="empty-state d-none">
-          <i class="bi bi-pen empty-state-icon"></i>
-          <h5>No unlinked signatures</h5>
-          <p class="mb-0">Signatures saved without a student appear here.</p>
-        </div>
-        <div id="unlinked-sig-list" class="row g-3"></div>
-      </div>
-    </section>
-
-    <section class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span><i class="bi bi-layout-text-window"></i> Default Layout
-          <span id="default-layout-badge" class="badge text-bg-secondary ms-1">Not loaded</span>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-pen"></i> Unlinked Signatures
+          <span id="unlinked-sig-count-badge" class="badge rounded-pill text-bg-primary ms-1">0</span>
         </span>
-        <button id="btn-refresh-default-layout" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-arrow-clockwise"></i> Refresh from server
-        </button>
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#unlinked-body"
+          aria-expanded="true" aria-label="Show or hide"><i class="bi bi-chevron-expand"></i></button>
       </div>
-      <div class="card-body">
-        <div id="default-layout-info" class="text-muted mb-0"></div>
-      </div>
-    </section>
-
-    <!-- LAYOUTS -->
-    <section class="card mb-4">
-      <div class="card-header">
-        <i class="bi bi-collection"></i> Layouts
-        <span id="layouts-count-badge" class="badge rounded-pill text-bg-primary ms-1">0</span>
-      </div>
-      <div class="card-body">
-        <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
-          <button id="btn-delete-layout" class="btn btn-danger">Delete Selected</button>
-          <button id="btn-delete-all-layouts" class="btn btn-outline-danger">Delete All</button>
-
-          <div class="form-check ms-sm-3">
-            <input class="form-check-input" type="checkbox" id="select-all-layouts-checkbox">
-            <label class="form-check-label" for="select-all-layouts-checkbox">Select All</label>
+      <div class="collapse show" id="unlinked-body">
+        <div class="card-body">
+          <p class="text-muted small">Signatures saved on this device that are not linked to anyone. Set whether it is a
+            student's or a teacher's, then pick the person to link it to.</p>
+          <div id="unlinked-sig-empty" class="empty-state d-none">
+            <i class="bi bi-pen empty-state-icon"></i>
+            <h5>No unlinked signatures</h5>
+            <p class="mb-0">Signatures saved without a student or teacher appear here.</p>
           </div>
+          <div id="unlinked-sig-list" class="row g-3"></div>
         </div>
-
-        <div id="layout-list" class="row g-3"></div>
       </div>
     </section>
 
+    <!-- STAMPS -->
     <section class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span><i class="bi bi-clock-history"></i> Last Used Layout
-          <span id="last-used-layout-badge" class="badge text-bg-secondary ms-1">Empty</span>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-patch-check"></i> Stamps
+          <span id="stamps-count-badge" class="badge rounded-pill text-bg-primary ms-1">0</span>
         </span>
-        <button id="btn-delete-last-used" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> Delete
-        </button>
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#stamps-body"
+          aria-expanded="true" aria-label="Show or hide"><i class="bi bi-chevron-expand"></i></button>
       </div>
-      <div class="card-body">
-        <div id="last-used-layout-info" class="text-muted mb-0"></div>
+      <div class="collapse show" id="stamps-body">
+        <div class="card-body">
+          <p class="text-muted small">College seals and other stamps saved on this device. They are not linked to a
+            person.</p>
+          <div id="stamps-empty" class="empty-state d-none">
+            <i class="bi bi-patch-check empty-state-icon"></i>
+            <h5>No saved stamps</h5>
+            <p class="mb-0">Stamps saved from the Topsheet Maker appear here.</p>
+          </div>
+          <div id="stamp-list" class="row g-3"></div>
+        </div>
       </div>
     </section>
+
+    <!-- LAYOUTS (cards built from #layout-card-tpl) -->
+    <div id="layout-sections"></div>
 
     <!-- SUBJECTS -->
     <section class="card mb-4">
@@ -131,56 +82,129 @@
         <span><i class="bi bi-journal-text"></i> Subjects
           <span id="subjects-count-badge" class="badge rounded-pill text-bg-primary ms-1">0</span>
         </span>
-        <button id="btn-refresh-subjects" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-arrow-clockwise"></i> Refresh from server
-        </button>
+        <span class="d-flex gap-2">
+          <button id="btn-refresh-subjects" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-clockwise"></i> Refresh from server
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#subjects-body"
+            aria-expanded="false" aria-label="Show or hide"><i class="bi bi-chevron-expand"></i></button>
+        </span>
       </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered mb-0">
-            <thead>
-              <tr>
-                <th>Subject Code</th>
-                <th>Subject Name</th>
-              </tr>
-            </thead>
-            <tbody id="subjects-table-body"></tbody>
-          </table>
+      <div class="collapse" id="subjects-body">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+              <thead>
+                <tr>
+                  <th>Subject Code</th>
+                  <th>Subject Name</th>
+                </tr>
+              </thead>
+              <tbody id="subjects-table-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
 
   </div>
 
-  <!-- Add User Modal -->
-  <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+  <template id="people-card-tpl">
+    <section class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi" data-ref="icon"></i> <span data-ref="title"></span>
+          <span data-ref="count" class="badge rounded-pill text-bg-primary ms-1">0</span>
+        </span>
+        <span class="d-flex gap-2">
+          <button data-ref="clear" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Clear all</button>
+          <button class="btn btn-sm btn-outline-secondary" data-ref="toggle" data-bs-toggle="collapse"
+            aria-expanded="true" aria-label="Show or hide"><i class="bi bi-chevron-expand"></i></button>
+        </span>
+      </div>
+      <div class="collapse show" data-ref="body">
+        <div class="card-body">
+          <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+            <button data-ref="add" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <span
+                data-ref="add-label"></span></button>
+            <button data-ref="delete" class="btn btn-danger">Delete Selected</button>
+            <button data-ref="import" class="btn btn-secondary">Import</button>
+            <button data-ref="export" class="btn btn-secondary">Export</button>
+            <input type="file" data-ref="import-file" accept="application/json" hidden>
+            <div class="form-check ms-sm-3">
+              <input class="form-check-input" type="checkbox" data-ref="select-all">
+              <label class="form-check-label" data-ref="select-all-label">Select All</label>
+            </div>
+          </div>
+          <div data-ref="empty" class="empty-state d-none">
+            <i class="bi empty-state-icon" data-ref="empty-icon"></i>
+            <h5 data-ref="empty-title"></h5>
+            <p class="mb-0" data-ref="empty-text"></p>
+          </div>
+          <div data-ref="list" class="row g-3"></div>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <template id="layout-card-tpl">
+    <section class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi" data-ref="icon"></i> <span data-ref="title"></span>
+          <span data-ref="count" class="badge rounded-pill text-bg-primary ms-1">0</span>
+        </span>
+        <button class="btn btn-sm btn-outline-secondary" data-ref="toggle" data-bs-toggle="collapse"
+          aria-expanded="false" aria-label="Show or hide"><i class="bi bi-chevron-expand"></i></button>
+      </div>
+      <div class="collapse" data-ref="body">
+        <div class="card-body">
+          <div data-ref="default-wrap"
+            class="d-flex justify-content-between align-items-center flex-wrap gap-2 border rounded p-2 mb-3">
+            <span><strong>Default layout</strong>
+              <span data-ref="default-badge" class="badge text-bg-secondary ms-1">Not loaded</span>
+              <span data-ref="default-info" class="text-muted small ms-1"></span>
+            </span>
+            <button data-ref="default-refresh" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-arrow-clockwise"></i> Refresh from server
+            </button>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 border rounded p-2 mb-3">
+            <span><strong>Last used layout</strong>
+              <span data-ref="last-badge" class="badge text-bg-secondary ms-1">Empty</span>
+              <span data-ref="last-info" class="text-muted small ms-1"></span>
+            </span>
+            <button data-ref="last-delete" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i>
+              Delete</button>
+          </div>
+
+          <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+            <button data-ref="delete" class="btn btn-danger">Delete Selected</button>
+            <button data-ref="delete-all" class="btn btn-outline-danger">Delete All</button>
+            <div class="form-check ms-sm-3">
+              <input class="form-check-input" type="checkbox" data-ref="select-all">
+              <label class="form-check-label" data-ref="select-all-label">Select All</label>
+            </div>
+          </div>
+          <div data-ref="list" class="row g-3"></div>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <!-- Add person modal (fields are filled in for students or teachers) -->
+  <div class="modal fade" id="addPersonModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Add User</h5>
+          <h5 class="modal-title" id="add-person-title">Add</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form id="add-user-form">
-            <div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control"
-                id="new-user-name" required></div>
-            <div class="mb-2"><label class="form-label">Roll</label><input type="text" class="form-control"
-                id="new-user-roll"></div>
-            <div class="mb-2"><label class="form-label">Reg</label><input type="text" class="form-control"
-                id="new-user-reg"></div>
-            <div class="mb-2"><label class="form-label">Dept</label><input type="text" class="form-control"
-                id="new-user-dept"></div>
-            <div class="mb-2"><label class="form-label">Course</label><input type="text" class="form-control"
-                id="new-user-course"></div>
-            <div class="mb-2"><label class="form-label">Year</label><input type="text" class="form-control"
-                id="new-user-year"></div>
-            <div class="mb-2"><label class="form-label">Sem</label><input type="text" class="form-control"
-                id="new-user-sem"></div>
-          </form>
+          <form id="add-person-form"></form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" id="btn-save-new-user" class="btn btn-primary">Save</button>
+          <button type="button" id="btn-save-new-person" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
