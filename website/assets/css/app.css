@@ -1247,6 +1247,14 @@ a.topbar-chip:focus {
   --bs-btn-active-border-color: #1d4ed8;
 }
 
+/* Muted text inside a filled hover/active button must follow the button's light text. */
+[class*="btn-outline-"]:hover .text-muted,
+[class*="btn-outline-"]:active .text-muted,
+[class*="btn-outline-"].active .text-muted,
+.btn-check:checked + [class*="btn-outline-"] .text-muted {
+  color: inherit !important;
+}
+
 .form-control,
 .form-select {
   border-color: var(--kg-border);
