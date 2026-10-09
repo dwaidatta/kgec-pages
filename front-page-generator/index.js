@@ -3,6 +3,7 @@ import { loadUsers } from "../lib/users.js";
 import { showToast, promptForText } from "../lib/ui.js";
 import { renderNavbar } from "../lib/navbar.js";
 import { generateFrontPagePdf } from "../lib/pdf-generate.js";
+import { askToSaveLayout } from "../lib/layout-save-prompt.js";
 import { getDefaultLayout, getStoredDefaultLayout, isLockedLayout } from "../lib/default-layout.js";
 
 
@@ -133,6 +134,7 @@ function syncOverwriteButtonState() {
 }
 
 function syncControlsFromLayout() {
+  layoutSnapshot = snapshotLayout();
   document.getElementById("btn-save-layout").disabled = false;
   syncOverwriteButtonState();
 
@@ -372,6 +374,45 @@ function bindGlobalControls() {
   document.getElementById("btn-overwrite-layout").addEventListener("click", overwriteCurrentLayout);
 }
 
+// Before exporting: if the layout changed since it was loaded, saved or last
+// asked about, offer to save it. Resolves false when cancelled.
+let layoutSnapshot = null;
+
+function snapshotLayout() {
+  return JSON.stringify(currentLayout);
+}
+
+async function offerToSaveLayout() {
+  if (snapshotLayout() === layoutSnapshot) return true;
+
+  const key = document.getElementById("layout-select").value;
+  const layouts = getItem(KEYS.LAYOUTS) || {};
+  const selected = layouts[key];
+  const canOverwrite = Boolean(selected) && !isLockedLayout(currentLayout);
+
+  const choice = await askToSaveLayout({ canOverwrite, overwriteLabel: selected?.label });
+  if (!choice) return false;
+
+  if (choice.action === "new") {
+    currentLayout.locked = false;
+    currentLayout.label = choice.name;
+    const newKey = "layout-" + Date.now();
+    layouts[newKey] = structuredClone(currentLayout);
+    setItem(KEYS.LAYOUTS, layouts);
+    renderLayoutSelect(layouts, defaultLayoutRef);
+    document.getElementById("layout-select").value = newKey;
+    syncControlsFromLayout();
+    showToast("Saved as new layout.", "success");
+  } else if (choice.action === "overwrite") {
+    layouts[key] = structuredClone(currentLayout);
+    setItem(KEYS.LAYOUTS, layouts);
+    showToast("Layout overwritten.", "success");
+  }
+
+  layoutSnapshot = snapshotLayout();
+  return true;
+}
+
 async function saveLayoutAsNew() {
   const name = await promptForText("Enter a name for this layout:");
   if (!name || !name.trim()) return;
@@ -403,10 +444,13 @@ async function overwriteCurrentLayout() {
   const layouts = getItem(KEYS.LAYOUTS) || {};
   layouts[selectedKey] = structuredClone(currentLayout);
   setItem(KEYS.LAYOUTS, layouts);
+  layoutSnapshot = snapshotLayout();
   showToast("Layout overwritten.", "success");
 }
 
 async function exportCurrentAsPdf() {
+  if (!(await offerToSaveLayout())) return;
+
   const users = loadUsers();
   const idsToExport = selectedUserIds.length > 0 ? selectedUserIds : [null];
 

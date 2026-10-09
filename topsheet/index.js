@@ -5,7 +5,9 @@
  */
 
 import { renderNavbar } from "../lib/navbar.js";
-import { showToast } from "../lib/ui.js";
+import { showToast, promptForText } from "../lib/ui.js";
+import { getItem, setItem, KEYS } from "../lib/storage.js";
+import { askToSaveLayout } from "../lib/layout-save-prompt.js";
 import { openSignaturePicker } from "../lib/signature-picker.js";
 import { activateStudentFlow } from "./student/pdf-annotator.js";
 
@@ -1577,6 +1579,8 @@ async function generateAllTopsheets() {
     return;
   }
 
+  if (!(await offerToSaveLayout())) return;
+
   const btn = document.getElementById("btn-generate");
 
   btn.disabled = true;
@@ -1715,6 +1719,8 @@ async function waitForImages(container) {
 // Download the sheet as it is now, with the student fields left blank.
 
 async function downloadBlankSheet() {
+  if (!(await offerToSaveLayout())) return;
+
   const btn = document.getElementById("btn-download-blank");
 
   btn.disabled = true;
@@ -1866,12 +1872,14 @@ function scrollToPage(idx) {
 
 // Export all students as one PDF (the pages were prepared by Generate).
 
-function exportAllAsPDF() {
+async function exportAllAsPDF() {
   if (!state.generatedReady || !state.printFrame) {
     showToast('Click "Generate All Topsheets" first.', "warning");
 
     return;
   }
+
+  if (!(await offerToSaveLayout())) return;
 
   showToast('In the print dialog, choose "Save as PDF".', "info");
 
@@ -2067,6 +2075,28 @@ async function init() {
     return;
   }
 
+  defaultLayout = structuredClone(state.layout);
+
+  const lastUsed = getItem(KEYS.TOPSHEET_LAST_USED_LAYOUT);
+
+  loadLayoutIntoSheet(lastUsed ? structuredClone(lastUsed) : state.layout);
+
+  bindInlineEditing();
+
+  bindSidebarEvents();
+
+  bindFormatting();
+
+  initLayoutControls(Boolean(lastUsed));
+}
+
+// Saved layouts (browser storage, like the front page generator)
+
+let defaultLayout = null;
+
+function loadLayoutIntoSheet(layout) {
+  state.layout = layout;
+
   state.layout.texts = state.layout.texts || {};
 
   applyLayout(state.layout);
@@ -2098,11 +2128,211 @@ async function init() {
 
   renderMarkRows();
 
-  bindInlineEditing();
+  selectedMarkRow = null;
 
-  bindSidebarEvents();
+  clearFormatSelection();
 
-  bindFormatting();
+  layoutSnapshot = snapshotLayout();
+}
+
+// What the sheet looked like when it was loaded, saved or last asked about.
+let layoutSnapshot = null;
+
+function snapshotLayout() {
+  return JSON.stringify(collectLayout(""));
+}
+
+// Snapshot of the sheet as it is now: texts, formats, page settings, rubrics, marks rows.
+function collectLayout(label) {
+  syncCommonFromDOM();
+
+  return structuredClone({
+    label,
+    page: state.layout.page,
+    texts: state.layout.texts,
+    rubrics: state.common.rubrics,
+    markRows: state.common.markRows,
+  });
+}
+
+function renderLayoutSelect(selectedKey = "__default__") {
+  const lastUsed = getItem(KEYS.TOPSHEET_LAST_USED_LAYOUT);
+
+  const select = document.getElementById("layout-select");
+
+  select.innerHTML = "";
+
+  const defaultOpt = document.createElement("option");
+
+  defaultOpt.value = "__default__";
+
+  defaultOpt.textContent = defaultLayout.label || "Default";
+
+  select.appendChild(defaultOpt);
+
+  if (lastUsed) {
+    const lastUsedOpt = document.createElement("option");
+
+    lastUsedOpt.value = "__last_used__";
+
+    lastUsedOpt.textContent = "Last used";
+
+    select.appendChild(lastUsedOpt);
+  }
+
+  Object.entries(getItem(KEYS.TOPSHEET_LAYOUTS) || {}).forEach(([key, layout]) => {
+    const opt = document.createElement("option");
+
+    opt.value = key;
+
+    opt.textContent = layout.label || key;
+
+    select.appendChild(opt);
+  });
+
+  select.value = selectedKey;
+
+  syncOverwriteButton();
+}
+
+function syncOverwriteButton() {
+  const key = document.getElementById("layout-select").value;
+
+  document.getElementById("btn-overwrite-layout").disabled = key === "__default__" || key === "__last_used__";
+}
+
+// Keeps the sheet as it is now, so the next visit starts where this one stopped.
+let saveLastUsedTimer = null;
+
+function saveLastUsedLayout() {
+  clearTimeout(saveLastUsedTimer);
+
+  saveLastUsedTimer = setTimeout(() => {
+    setItem(KEYS.TOPSHEET_LAST_USED_LAYOUT, collectLayout("Last used"));
+  }, 400);
+}
+
+function storeNewLayout(name) {
+  const layouts = getItem(KEYS.TOPSHEET_LAYOUTS) || {};
+
+  const key = "layout-" + Date.now();
+
+  layouts[key] = collectLayout(name);
+
+  if (!setItem(KEYS.TOPSHEET_LAYOUTS, layouts)) {
+    showToast("Could not save the layout.", "danger");
+
+    return false;
+  }
+
+  renderLayoutSelect(key);
+
+  layoutSnapshot = snapshotLayout();
+
+  return true;
+}
+
+function storeOverwrite() {
+  const select = document.getElementById("layout-select");
+
+  const layouts = getItem(KEYS.TOPSHEET_LAYOUTS) || {};
+
+  if (select.value === "__default__" || select.value === "__last_used__" || !layouts[select.value]) {
+    showToast("This layout cannot be overwritten.", "warning");
+
+    return false;
+  }
+
+  layouts[select.value] = collectLayout(layouts[select.value].label);
+
+  if (!setItem(KEYS.TOPSHEET_LAYOUTS, layouts)) {
+    showToast("Could not save the layout.", "danger");
+
+    return false;
+  }
+
+  layoutSnapshot = snapshotLayout();
+
+  return true;
+}
+
+async function saveLayoutAsNew() {
+  const name = await promptForText("Enter a name for this layout:");
+
+  if (!name || !name.trim()) return;
+
+  if (storeNewLayout(name.trim())) showToast("Saved as new layout.", "success");
+}
+
+function overwriteLayout() {
+  if (storeOverwrite()) showToast("Layout overwritten.", "success");
+}
+
+// Before generating / exporting: if the layout changed since it was loaded,
+// saved or last asked about, offer to save it. Resolves false when cancelled.
+async function offerToSaveLayout() {
+  if (snapshotLayout() === layoutSnapshot) return true;
+
+  const layouts = getItem(KEYS.TOPSHEET_LAYOUTS) || {};
+
+  const selected = layouts[document.getElementById("layout-select").value];
+
+  const choice = await askToSaveLayout({
+    canOverwrite: Boolean(selected),
+    overwriteLabel: selected?.label,
+  });
+
+  if (!choice) return false;
+
+  if (choice.action === "new" && storeNewLayout(choice.name)) {
+    showToast("Saved as new layout.", "success");
+  } else if (choice.action === "overwrite" && storeOverwrite()) {
+    showToast("Layout overwritten.", "success");
+  } else {
+    layoutSnapshot = snapshotLayout();
+  }
+
+  return true;
+}
+
+function initLayoutControls(hasLastUsed) {
+  renderLayoutSelect(hasLastUsed ? "__last_used__" : "__default__");
+
+  document.getElementById("layout-select").addEventListener("change", (e) => {
+    const key = e.target.value;
+
+    const saved =
+      key === "__last_used__"
+        ? getItem(KEYS.TOPSHEET_LAST_USED_LAYOUT)
+        : (getItem(KEYS.TOPSHEET_LAYOUTS) || {})[key];
+
+    const next = key === "__default__" || !saved ? defaultLayout : saved;
+
+    if (key !== "__default__" && !saved) {
+      console.warn(`Layout "${key}" not found, falling back to default.`);
+
+      renderLayoutSelect();
+    }
+
+    loadLayoutIntoSheet(structuredClone(next));
+
+    syncOverwriteButton();
+
+    saveLastUsedLayout();
+  });
+
+  document.getElementById("btn-save-layout").addEventListener("click", saveLayoutAsNew);
+
+  document.getElementById("btn-overwrite-layout").addEventListener("click", overwriteLayout);
+
+  // Any change to the sheet (text, formats, table rows, placement) updates "Last used".
+  new MutationObserver(saveLastUsedLayout).observe(sheetDoc().getElementById("ts-preview"), {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ["style"],
+  });
 }
 
 init();
