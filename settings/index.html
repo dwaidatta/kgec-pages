@@ -73,6 +73,37 @@
       </div>
     </section>
 
+    <!-- BLOOM'S LEVELS -->
+    <section class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-mortarboard"></i> Bloom's Levels
+          <span id="blooms-count-badge" class="badge rounded-pill text-bg-primary ms-1">0</span>
+        </span>
+        <span class="d-flex gap-2">
+          <button id="btn-reset-blooms" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset to defaults
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#blooms-body"
+            aria-expanded="true" aria-label="Show or hide"><i class="bi bi-chevron-expand"></i></button>
+        </span>
+      </div>
+      <div class="collapse show" id="blooms-body">
+        <div class="card-body">
+          <p class="text-muted small">Shown as a guide in the Topsheet Maker when a Bloom's Level cell is selected.</p>
+          <form id="bloom-add-form" class="d-flex gap-2 mb-3">
+            <input id="bloom-add-input" class="form-control" placeholder="e.g. I - Remember" aria-label="Bloom's level">
+            <button type="submit" class="btn btn-primary text-nowrap"><i class="bi bi-plus-lg"></i> Add</button>
+          </form>
+          <div id="blooms-empty" class="empty-state d-none">
+            <i class="bi bi-mortarboard empty-state-icon"></i>
+            <h5>No Bloom's Levels</h5>
+            <p class="mb-0">Add one above, or reset to the defaults.</p>
+          </div>
+          <div id="bloom-list" class="d-flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- LAYOUTS (cards built from #layout-card-tpl) -->
     <div id="layout-sections"></div>
 

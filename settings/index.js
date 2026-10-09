@@ -11,6 +11,7 @@ import {
   setSignatureRole,
   removeSavedSignature,
 } from "../lib/saved-signatures.js";
+import { getBlooms, saveBlooms, resetBlooms } from "../lib/blooms.js";
 import { listStamps, renameStamp, removeStamp } from "../lib/saved-stamps.js";
 import { populateStudentSelect } from "../lib/student-link.js";
 renderNavbar("../", "settings");
@@ -439,6 +440,53 @@ function renderStamps() {
   );
 }
 
+// ---------- BLOOM'S LEVELS ----------
+
+function renderBlooms() {
+  const blooms = getBlooms();
+  document.getElementById("blooms-count-badge").textContent = blooms.length;
+  document.getElementById("blooms-empty").classList.toggle("d-none", blooms.length > 0);
+
+  document.getElementById("bloom-list").replaceChildren(
+    ...blooms.map((bloom, index) => {
+      const chip = document.createElement("span");
+      chip.className = "badge text-bg-light border d-inline-flex align-items-center gap-2 fs-6 fw-normal";
+      chip.innerHTML = `<span></span><button type="button" class="btn-close" aria-label="Delete"></button>`;
+      chip.firstChild.textContent = bloom;
+      chip.querySelector("button").addEventListener("click", () => {
+        const next = getBlooms().filter((_, i) => i !== index);
+        if (!saveBlooms(next)) return;
+        renderBlooms();
+      });
+      return chip;
+    })
+  );
+}
+
+function addBloom(e) {
+  e.preventDefault();
+  const input = document.getElementById("bloom-add-input");
+  const value = input.value.trim();
+  if (!value) return;
+
+  const blooms = getBlooms();
+  if (blooms.includes(value)) {
+    showToast("That Bloom's level is already in the list.", "warning");
+    return;
+  }
+  if (!saveBlooms([...blooms, value])) return;
+  input.value = "";
+  renderBlooms();
+}
+
+async function resetBloomsToDefaults() {
+  const done = await confirmAndRun("Replace the Bloom's levels with the default set?", () => {
+    resetBlooms();
+    renderBlooms();
+  });
+  if (done) showToast("Bloom's levels reset to the defaults.", "success");
+}
+
 // ---------- LAYOUTS ----------
 
 const layoutViews = {};
@@ -599,9 +647,12 @@ function init() {
 
   renderPeople();
   renderStamps();
+  renderBlooms();
   renderLayouts();
   renderSubjects();
 
+  document.getElementById("bloom-add-form").addEventListener("submit", addBloom);
+  document.getElementById("btn-reset-blooms").addEventListener("click", resetBloomsToDefaults);
   document.getElementById("btn-save-new-person").addEventListener("click", addPersonFromModal);
   document.getElementById("add-person-form").addEventListener("submit", (e) => {
     e.preventDefault();

@@ -214,7 +214,7 @@
       "allotted": "1",
       "awarded": "",
       "co": "CO",
-      "bloom": "I - Understand",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -222,7 +222,7 @@
       "allotted": "1",
       "awarded": "",
       "co": "CO",
-      "bloom": "I - Recall",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -230,7 +230,7 @@
       "allotted": "1",
       "awarded": "",
       "co": "CO",
-      "bloom": "I - Remember",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -238,7 +238,7 @@
       "allotted": "1",
       "awarded": "",
       "co": "CO",
-      "bloom": "I - Recall",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -246,7 +246,7 @@
       "allotted": "1",
       "awarded": "",
       "co": "CO",
-      "bloom": "II - Understand",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -254,7 +254,7 @@
       "allotted": "1",
       "awarded": "",
       "co": "CO",
-      "bloom": "I - Memorize",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -262,7 +262,7 @@
       "allotted": "1",
       "awarded": "",
       "co": "CO",
-      "bloom": "I - Memorize",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -270,7 +270,7 @@
       "allotted": "5",
       "awarded": "",
       "co": "CO",
-      "bloom": "VI - Discuss",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -278,7 +278,7 @@
       "allotted": "5",
       "awarded": "",
       "co": "CO",
-      "bloom": "VI - Describe",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -286,7 +286,7 @@
       "allotted": "5",
       "awarded": "",
       "co": "CO",
-      "bloom": "V - Explain",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -294,7 +294,7 @@
       "allotted": "5",
       "awarded": "",
       "co": "CO",
-      "bloom": "I - Define",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -302,7 +302,7 @@
       "allotted": "5",
       "awarded": "",
       "co": "CO",
-      "bloom": "V - Explain",
+      "bloom": "",
       "remarks": ""
     },
     {
@@ -310,7 +310,7 @@
       "allotted": "5",
       "awarded": "",
       "co": "CO",
-      "bloom": "V - Explain",
+      "bloom": "",
       "remarks": ""
     }
   ]

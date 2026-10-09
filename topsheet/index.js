@@ -9,6 +9,7 @@ import { showToast, promptForText } from "../lib/ui.js";
 import { getItem, setItem, KEYS } from "../lib/storage.js";
 import { askToSaveLayout } from "../lib/layout-save-prompt.js";
 import { getDefaultLayout, isLockedLayout } from "../lib/default-layout.js";
+import { getBlooms } from "../lib/blooms.js";
 import { openSignaturePicker } from "../lib/signature-picker.js";
 import { listSavedSignatures, saveSignature } from "../lib/saved-signatures.js";
 import { listStamps, saveStamp } from "../lib/saved-stamps.js";
@@ -354,13 +355,20 @@ function renderMarkRows() {
     */
     el.addEventListener("focus", () => {
       selectMarkRow(parseInt(el.dataset.mk, 10));
+
+      if (el.dataset.mkCol === "bloom") showBloomPopup(el);
+      else hideBloomPopup();
     });
+
+    el.addEventListener("blur", hideBloomPopup);
 
     /*
       Also select the row on click.
     */
     el.addEventListener("click", () => {
       selectMarkRow(parseInt(el.dataset.mk, 10));
+
+      if (el.dataset.mkCol === "bloom") showBloomPopup(el);
     });
 
     /*
@@ -418,6 +426,8 @@ function updateMarkRowActionUI() {
   if (selectedMarkRow === null || !state.common.markRows[selectedMarkRow]) {
     card.style.display = "none";
 
+    hideBloomPopup();
+
     return;
   }
 
@@ -441,6 +451,92 @@ function updateMarkRowActionUI() {
   if (removeBtn) {
     removeBtn.disabled = state.common.markRows.length <= 1;
   }
+}
+
+// Bloom's level picker: a box next to a selected Bloom's Level cell, listing the saved levels.
+let bloomPopup = null;
+
+let bloomList = null;
+
+function hideBloomPopup() {
+  if (bloomPopup) bloomPopup.style.display = "none";
+}
+
+function showBloomPopup(cell) {
+  if (!bloomPopup) {
+    bloomPopup = document.createElement("div");
+
+    bloomPopup.style.cssText =
+      "position:fixed;z-index:1080;display:none;min-width:160px;background:#fff;border:1px solid #cfd8d4;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);overflow:hidden;";
+
+    bloomList = document.createElement("div");
+
+    bloomList.className = "custom-scroll";
+
+    bloomList.style.cssText = "max-height:200px;overflow-y:auto;";
+
+    bloomPopup.appendChild(bloomList);
+
+    // Keep the cell focused while a level is clicked.
+    bloomPopup.addEventListener("mousedown", (e) => e.preventDefault());
+
+    document.body.appendChild(bloomPopup);
+  }
+
+  const blooms = getBlooms();
+
+  const rowStyle = "display:block;width:100%;text-align:left;border:0;background:none;padding:2px 10px;font-size:.8rem;line-height:1.4;color:inherit;";
+
+  bloomList.replaceChildren(
+    ...(blooms.length
+      ? blooms.map((bloom) => {
+          const item = document.createElement("button");
+
+          item.type = "button";
+
+          item.style.cssText = rowStyle;
+
+          item.addEventListener("mouseenter", () => (item.style.background = "#e8f3ef"));
+
+          item.addEventListener("mouseleave", () => (item.style.background = "none"));
+
+          item.textContent = bloom;
+
+          item.addEventListener("click", () => {
+            cell.textContent = bloom;
+
+            cell.dispatchEvent(new Event("input", { bubbles: true }));
+
+            hideBloomPopup();
+          });
+
+          return item;
+        })
+      : [Object.assign(document.createElement("div"), { textContent: "No Bloom's levels saved.", style: rowStyle + "color:#6c757d;" })])
+  );
+
+  // The sheet is scaled inside its frame, so convert the cell position to page coordinates.
+  const frame = document.getElementById("ts-frame");
+
+  const frameRect = frame.getBoundingClientRect();
+
+  const scale = frame.offsetWidth ? frameRect.width / frame.offsetWidth : 1;
+
+  const cellRect = cell.getBoundingClientRect();
+
+  bloomPopup.style.display = "";
+
+  const left = Math.min(frameRect.left + cellRect.left * scale, window.innerWidth - bloomPopup.offsetWidth - 8);
+
+  let top = frameRect.top + cellRect.bottom * scale + 4;
+
+  if (top + bloomPopup.offsetHeight > window.innerHeight - 8) {
+    top = Math.max(8, frameRect.top + cellRect.top * scale - bloomPopup.offsetHeight - 4);
+  }
+
+  bloomPopup.style.left = `${Math.max(8, left)}px`;
+
+  bloomPopup.style.top = `${top}px`;
 }
 
 // Create blank marks row
@@ -2297,6 +2393,8 @@ function loadLayoutIntoSheet(layout) {
   renderMarkRows();
 
   selectedMarkRow = null;
+
+  hideBloomPopup();
 
   clearFormatSelection();
 
