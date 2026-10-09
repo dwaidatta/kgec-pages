@@ -5,35 +5,35 @@
       "name": "Dwaipayan Datta",
       "icon": "bi-lightbulb-fill",
       "tone": "amber",
-      "description": "The idealiser and lead contributor of KGEC Pages. Dreamed up a single place where students can create assignment front pages and manage their submissions, and built most of it."
+      "description": "The originator of the idea and the active maintainer of KGEC Pages. Conceived a single place for creating assignment front pages and topsheets, and continues to shape and maintain it."
     },
     {
       "label": "Code by",
       "name": "Arpan Biswas",
       "icon": "bi-code-slash",
       "tone": "green",
-      "description": "A significant contributor right from the 1st version. Coded the topsheet generator and the signature extraction."
+      "description": "Helped code the teacher topsheet and the signature features, and has been a valued contributor since the very first version."
     },
     {
       "label": "Idea by",
       "name": "Agniva Hait",
       "icon": "bi-braces",
       "tone": "blue",
-      "description": "Suggested adding profiles and a save option for topsheets, so that configurations are never lost. That idea eventually shaped the 2nd version."
+      "description": "Helped code profiles and contributed the idea of saving topsheets, so that no configuration is ever lost. That idea went on to shape the second version."
     },
     {
       "label": "Used by",
-      "name": "Students",
+      "name": "Teachers & students",
       "icon": "bi-mortarboard-fill",
       "tone": "purple",
-      "description": "Made for students who need quick front pages, merged PDFs and topsheets for their assignments and internal exams."
+      "description": "Used by teachers and students alike, for quick front pages, merged PDFs and topsheets for assignments and internal exams."
     },
     {
       "label": "Stored on",
       "name": "Your device",
       "icon": "bi-shield-lock-fill",
       "tone": "teal",
-      "description": "Your saved students, layouts and subjects stay locally in your browser."
+      "description": "Everything is stored on your device, so it stays fully local and completely private."
     },
     {
       "label": "Made by",

@@ -533,6 +533,38 @@ a.topbar-chip:focus {
   color: var(--bs-primary);
   font-weight: 600;
   font-size: 0.85rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-home .hero-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.7) 50%, transparent 65%);
+  transform: translateX(-100%);
+  animation: badge-shine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.page-home .hero-badge #hero-badge-text {
+  transition: opacity 0.3s ease;
+}
+
+.page-home .hero-badge #hero-badge-text.is-fading {
+  opacity: 0;
+}
+
+@keyframes badge-shine {
+  0%, 30% { transform: translateX(-100%); }
+  70%, 100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-home .hero-badge::after {
+    animation: none;
+    display: none;
+  }
 }
 
 .feature-card {

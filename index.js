@@ -31,6 +31,24 @@ async function initHomeMeta() {
   }
 }
 
+const BADGE_MESSAGES = ["Version 3 released", "Topsheet now available"];
+const BADGE_ROTATE_MS = 3000;
+
+function initBadge() {
+  const text = document.getElementById("hero-badge-text");
+  if (!text || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  let i = 0;
+  setInterval(() => {
+    text.classList.add("is-fading");
+    setTimeout(() => {
+      i = (i + 1) % BADGE_MESSAGES.length;
+      text.textContent = BADGE_MESSAGES[i];
+      text.classList.remove("is-fading");
+    }, 300);
+  }, BADGE_ROTATE_MS);
+}
+
 const AUTOPLAY_MS = 3500;
 const VISIBLE_RANGE = 2;
 
@@ -128,4 +146,5 @@ function escapeHtml(str) {
 }
 
 initHomeMeta();
+initBadge();
 loadCredits();
