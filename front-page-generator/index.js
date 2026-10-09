@@ -47,12 +47,12 @@ function buildLayoutForUser(userId) {
 }
 
 function renderMakeForList() {
-  const users = loadUsers();
+  const users = loadUsers("student");
   const container = document.getElementById("make-for-list");
   container.innerHTML = "";
 
   if (users.length === 0) {
-    container.innerHTML = `<p class="text-muted mb-0">No users yet — add one in <a href="../settings/index.html">Settings</a>.</p>`;
+    container.innerHTML = `<p class="text-muted mb-0">No students yet — add one in <a href="../settings/index.html">Settings</a>.</p>`;
     return;
   }
 
