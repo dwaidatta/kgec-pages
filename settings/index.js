@@ -44,6 +44,8 @@ const LAYOUT_KINDS = [
     lastKey: KEYS.STUDENT_LAST_USED_LAYOUT,
     hint: "Save a layout from the Front Page Generator to see it here.",
     hasDefault: true,
+    defaultKey: KEYS.DEFAULT_LAYOUT,
+    defaultPath: "../data/default_layout.json",
   },
   {
     id: "teacher",
@@ -52,7 +54,9 @@ const LAYOUT_KINDS = [
     layoutsKey: KEYS.TEACHER_LAYOUTS,
     lastKey: KEYS.TEACHER_LAST_USED_LAYOUT,
     hint: "Save a layout from the Topsheet Maker to see it here.",
-    hasDefault: false,
+    hasDefault: true,
+    defaultKey: KEYS.TOPSHEET_DEFAULT_LAYOUT,
+    defaultPath: "../data/topsheet_default_layout.json",
   },
 ];
 
@@ -450,7 +454,7 @@ function buildLayoutCards() {
     refs["select-all-label"].textContent = "Select All";
     refs["default-wrap"].classList.toggle("d-none", !kind.hasDefault);
 
-    refs["default-refresh"].addEventListener("click", refreshDefaultLayout);
+    refs["default-refresh"].addEventListener("click", () => refreshDefaultLayout(kind));
     refs["last-delete"].addEventListener("click", () => deleteLastUsed(kind));
     refs.delete.addEventListener("click", () => {
       const keys = [...refs.list.querySelectorAll(".layout-checkbox:checked")].map((cb) => cb.dataset.key);
@@ -473,7 +477,7 @@ function renderLayoutCard(kind) {
   refs["select-all"].checked = false;
 
   if (kind.hasDefault) {
-    const layout = getStoredDefaultLayout();
+    const layout = getStoredDefaultLayout(kind.defaultKey);
     refs["default-info"].textContent = layout ? `${layout.label || "Default"} (locked, read-only)` : "";
     refs["default-badge"].textContent = layout ? "Loaded" : "Not loaded";
     refs["default-badge"].className = `badge ms-1 ${layout ? "text-bg-primary" : "text-bg-secondary"}`;
@@ -527,8 +531,13 @@ function renderLayouts() {
   LAYOUT_KINDS.forEach(renderLayoutCard);
 }
 
-async function refreshDefaultLayout() {
-  await getDefaultLayout();
+async function refreshDefaultLayout(kind) {
+  try {
+    await getDefaultLayout(kind.defaultPath, kind.defaultKey);
+  } catch (err) {
+    showToast("Could not refresh the default layout from the server.", "danger");
+    return;
+  }
   renderLayouts();
   showToast("Default layout refreshed from server.", "success");
 }

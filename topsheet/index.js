@@ -8,6 +8,7 @@ import { renderNavbar } from "../lib/navbar.js";
 import { showToast, promptForText } from "../lib/ui.js";
 import { getItem, setItem, KEYS } from "../lib/storage.js";
 import { askToSaveLayout } from "../lib/layout-save-prompt.js";
+import { getDefaultLayout, isLockedLayout } from "../lib/default-layout.js";
 import { openSignaturePicker } from "../lib/signature-picker.js";
 import { listSavedSignatures, saveSignature } from "../lib/saved-signatures.js";
 import { listStamps, saveStamp } from "../lib/saved-stamps.js";
@@ -18,14 +19,8 @@ import { activateStudentFlow } from "./student/pdf-annotator.js";
 // marks rows) lives in data/topsheet_default_layout.json, like the front
 // page's default layout. state.layout is the working copy of that model.
 
-async function loadTopsheetLayout(pathToJson = "../data/topsheet_default_layout.json") {
-  const res = await fetch(pathToJson);
-
-  if (!res.ok) {
-    throw new Error(`Failed to load topsheet_default_layout.json: ${res.status}`);
-  }
-
-  return res.json();
+function loadTopsheetLayout() {
+  return getDefaultLayout("../data/topsheet_default_layout.json", KEYS.TOPSHEET_DEFAULT_LAYOUT);
 }
 
 // Application state
@@ -1587,7 +1582,7 @@ function renderValidationUI() {
         unmatched
           ? `
             <span class="badge text-bg-danger">
-              Missing: ${unmatched}
+              No signature: ${unmatched}
             </span>
           `
           : ""
@@ -1608,8 +1603,8 @@ function renderValidationUI() {
                 </span>
               `
         : `
-                <span class="badge text-bg-danger">
-                  missing
+                <span class="badge text-bg-secondary">
+                  no signature
                 </span>
               `;
 
@@ -1648,12 +1643,11 @@ function renderValidationUI() {
 
   document.getElementById("card-validation").style.display = "";
 
-  const hasMatched = matched > 0;
-
-  document.getElementById("card-generate").style.display = hasMatched ? "" : "none";
+  // Signatures are optional: topsheets can be generated as soon as there are students.
+  document.getElementById("card-generate").style.display = total > 0 ? "" : "none";
 
   if (unmatched > 0) {
-    showToast(`${unmatched} student(s) have no signature file.`, "warning");
+    showToast(`${unmatched} student(s) have no signature file. Their topsheets will have no signature.`, "info");
   }
 }
 
@@ -1753,7 +1747,7 @@ async function generateAllTopsheets() {
   const students = state.students;
 
   if (!students.length) {
-    showToast("No matched students.", "warning");
+    showToast("No students loaded.", "warning");
 
     return;
   }
@@ -2372,7 +2366,11 @@ function renderLayoutSelect(selectedKey = "__default__") {
 function syncOverwriteButton() {
   const key = document.getElementById("layout-select").value;
 
-  document.getElementById("btn-overwrite-layout").disabled = key === "__default__" || key === "__last_used__";
+  const locked = isLockedLayout(state.layout);
+
+  document.getElementById("btn-overwrite-layout").disabled = key === "__default__" || key === "__last_used__" || locked;
+
+  document.getElementById("layout-lock-badge").classList.toggle("d-none", !locked);
 }
 
 // Keeps the sheet as it is now, so the next visit starts where this one stopped.
@@ -2399,6 +2397,9 @@ function storeNewLayout(name) {
     return false;
   }
 
+  // The saved copy is the user's own, so the sheet is no longer the locked default.
+  state.layout.locked = false;
+
   renderLayoutSelect(key);
 
   layoutSnapshot = snapshotLayout();
@@ -2411,7 +2412,12 @@ function storeOverwrite() {
 
   const layouts = getItem(KEYS.TEACHER_LAYOUTS) || {};
 
-  if (select.value === "__default__" || select.value === "__last_used__" || !layouts[select.value]) {
+  if (
+    select.value === "__default__" ||
+    select.value === "__last_used__" ||
+    isLockedLayout(state.layout) ||
+    !layouts[select.value]
+  ) {
     showToast("This layout cannot be overwritten.", "warning");
 
     return false;
@@ -2452,7 +2458,7 @@ async function offerToSaveLayout() {
   const selected = layouts[document.getElementById("layout-select").value];
 
   const choice = await askToSaveLayout({
-    canOverwrite: Boolean(selected),
+    canOverwrite: Boolean(selected) && !isLockedLayout(state.layout),
     overwriteLabel: selected?.label,
   });
 

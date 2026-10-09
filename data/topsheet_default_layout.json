@@ -1,5 +1,6 @@
 {
   "label": "Default",
+  "locked": true,
   "page": {
     "fontSize": 8,
     "margin": {
@@ -212,7 +213,7 @@
       "qno": "1.a)",
       "allotted": "1",
       "awarded": "",
-      "co": "CO1",
+      "co": "CO",
       "bloom": "I - Understand",
       "remarks": ""
     },
@@ -220,7 +221,7 @@
       "qno": "1.b)",
       "allotted": "1",
       "awarded": "",
-      "co": "CO3",
+      "co": "CO",
       "bloom": "I - Recall",
       "remarks": ""
     },
@@ -228,7 +229,7 @@
       "qno": "1.c)",
       "allotted": "1",
       "awarded": "",
-      "co": "CO2",
+      "co": "CO",
       "bloom": "I - Remember",
       "remarks": ""
     },
@@ -236,7 +237,7 @@
       "qno": "1.d)",
       "allotted": "1",
       "awarded": "",
-      "co": "CO1",
+      "co": "CO",
       "bloom": "I - Recall",
       "remarks": ""
     },
@@ -244,7 +245,7 @@
       "qno": "1.e)",
       "allotted": "1",
       "awarded": "",
-      "co": "CO1",
+      "co": "CO",
       "bloom": "II - Understand",
       "remarks": ""
     },
@@ -252,7 +253,7 @@
       "qno": "1.f)",
       "allotted": "1",
       "awarded": "",
-      "co": "CO1",
+      "co": "CO",
       "bloom": "I - Memorize",
       "remarks": ""
     },
@@ -260,7 +261,7 @@
       "qno": "1.g)",
       "allotted": "1",
       "awarded": "",
-      "co": "CO3",
+      "co": "CO",
       "bloom": "I - Memorize",
       "remarks": ""
     },
@@ -268,7 +269,7 @@
       "qno": "2",
       "allotted": "5",
       "awarded": "",
-      "co": "CO1,CO3",
+      "co": "CO",
       "bloom": "VI - Discuss",
       "remarks": ""
     },
@@ -276,7 +277,7 @@
       "qno": "3",
       "allotted": "5",
       "awarded": "",
-      "co": "CO2",
+      "co": "CO",
       "bloom": "VI - Describe",
       "remarks": ""
     },
@@ -284,7 +285,7 @@
       "qno": "4",
       "allotted": "5",
       "awarded": "",
-      "co": "CO2",
+      "co": "CO",
       "bloom": "V - Explain",
       "remarks": ""
     },
@@ -292,7 +293,7 @@
       "qno": "5",
       "allotted": "5",
       "awarded": "",
-      "co": "CO2",
+      "co": "CO",
       "bloom": "I - Define",
       "remarks": ""
     },
@@ -300,7 +301,7 @@
       "qno": "6",
       "allotted": "5",
       "awarded": "",
-      "co": "CO2",
+      "co": "CO",
       "bloom": "V - Explain",
       "remarks": ""
     },
@@ -308,7 +309,7 @@
       "qno": "7",
       "allotted": "5",
       "awarded": "",
-      "co": "CO3",
+      "co": "CO",
       "bloom": "V - Explain",
       "remarks": ""
     }

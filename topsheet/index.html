@@ -631,11 +631,11 @@
 
           <div class="card">
 
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
 
-              <i class="bi bi-layout-text-window"></i>
+              <span><i class="bi bi-layout-text-window"></i> Layout</span>
 
-              Layout
+              <span id="layout-lock-badge" class="badge text-bg-secondary d-none"><i class="bi bi-lock-fill"></i> Locked</span>
 
             </div>
 
@@ -680,6 +680,132 @@
                 <li>Add your signature and the college seal below.</li>
 
               </ol>
+
+            </div>
+
+          </div>
+
+
+          <!-- TEXT FORMAT -->
+
+          <div
+            class="card"
+            id="card-text-format"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-type"></i>
+
+              Text Format
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <div
+                id="fmt-target"
+                class="small text-muted text-truncate"
+              ></div>
+
+
+              <div>
+
+                <label class="form-label small mb-1" for="fmt-size">Font size (pt)</label>
+
+                <input
+                  type="number"
+                  id="fmt-size"
+                  class="form-control"
+                  min="4"
+                  max="30"
+                  step="0.5"
+                >
+
+              </div>
+
+
+              <div class="d-flex gap-2">
+
+                <button type="button" id="fmt-bold" class="btn btn-sm btn-outline-secondary toggle-bold flex-fill" aria-label="Bold"><i class="bi bi-type-bold"></i></button>
+
+                <button type="button" id="fmt-italic" class="btn btn-sm btn-outline-secondary toggle-italic flex-fill" aria-label="Italic"><i class="bi bi-type-italic"></i></button>
+
+                <button type="button" id="fmt-underline" class="btn btn-sm btn-outline-secondary toggle-underline flex-fill" aria-label="Underline"><i class="bi bi-type-underline"></i></button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- MARKS ROW ACTIONS -->
+
+          <div
+            class="card"
+            id="card-mark-row-actions"
+            style="display:none;"
+          >
+
+            <div class="card-header">
+
+              <i class="bi bi-table"></i>
+
+              Marks Table Rows
+
+            </div>
+
+
+            <div class="card-body d-flex flex-column gap-2">
+
+              <div
+                id="mark-row-number"
+                class="small text-muted"
+              >
+                Row 1
+              </div>
+
+
+              <button
+                id="btn-remove-mark-row"
+                type="button"
+                class="btn btn-outline-danger"
+              >
+
+                <i class="bi bi-trash3"></i>
+
+                Remove this row
+
+              </button>
+
+
+              <button
+                id="btn-add-mark-row-above"
+                type="button"
+                class="btn btn-outline-primary"
+              >
+
+                <i class="bi bi-arrow-up"></i>
+
+                Add a row above
+
+              </button>
+
+
+              <button
+                id="btn-add-mark-row-below"
+                type="button"
+                class="btn btn-outline-primary"
+              >
+
+                <i class="bi bi-arrow-down"></i>
+
+                Add a row below
+
+              </button>
 
             </div>
 
@@ -832,132 +958,6 @@
                 id="stat-college-seal"
                 class="small text-muted"
               ></div>
-
-            </div>
-
-          </div>
-
-
-          <!-- TEXT FORMAT -->
-
-          <div
-            class="card"
-            id="card-text-format"
-            style="display:none;"
-          >
-
-            <div class="card-header">
-
-              <i class="bi bi-type"></i>
-
-              Text Format
-
-            </div>
-
-
-            <div class="card-body d-flex flex-column gap-2">
-
-              <div
-                id="fmt-target"
-                class="small text-muted text-truncate"
-              ></div>
-
-
-              <div>
-
-                <label class="form-label small mb-1" for="fmt-size">Font size (pt)</label>
-
-                <input
-                  type="number"
-                  id="fmt-size"
-                  class="form-control"
-                  min="4"
-                  max="30"
-                  step="0.5"
-                >
-
-              </div>
-
-
-              <div class="d-flex gap-2">
-
-                <button type="button" id="fmt-bold" class="btn btn-sm btn-outline-secondary toggle-bold flex-fill" aria-label="Bold"><i class="bi bi-type-bold"></i></button>
-
-                <button type="button" id="fmt-italic" class="btn btn-sm btn-outline-secondary toggle-italic flex-fill" aria-label="Italic"><i class="bi bi-type-italic"></i></button>
-
-                <button type="button" id="fmt-underline" class="btn btn-sm btn-outline-secondary toggle-underline flex-fill" aria-label="Underline"><i class="bi bi-type-underline"></i></button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <!-- MARKS ROW ACTIONS -->
-
-          <div
-            class="card"
-            id="card-mark-row-actions"
-            style="display:none;"
-          >
-
-            <div class="card-header">
-
-              <i class="bi bi-table"></i>
-
-              Marks Table Rows
-
-            </div>
-
-
-            <div class="card-body d-flex flex-column gap-2">
-
-              <div
-                id="mark-row-number"
-                class="small text-muted"
-              >
-                Row 1
-              </div>
-
-
-              <button
-                id="btn-remove-mark-row"
-                type="button"
-                class="btn btn-outline-danger"
-              >
-
-                <i class="bi bi-trash3"></i>
-
-                Remove this row
-
-              </button>
-
-
-              <button
-                id="btn-add-mark-row-above"
-                type="button"
-                class="btn btn-outline-primary"
-              >
-
-                <i class="bi bi-arrow-up"></i>
-
-                Add a row above
-
-              </button>
-
-
-              <button
-                id="btn-add-mark-row-below"
-                type="button"
-                class="btn btn-outline-primary"
-              >
-
-                <i class="bi bi-arrow-down"></i>
-
-                Add a row below
-
-              </button>
 
             </div>
 
@@ -1117,7 +1117,8 @@
 
                 <br>
 
-                Students must supply clear, transparent signatures already processed with the
+                Signatures are optional: students without one get a topsheet with no signature.
+                Signatures supplied must be clear, transparent signatures already processed with the
                 Signature Extractor on this website. They are placed exactly as given, with no
                 extraction or clean-up.
 
