@@ -490,9 +490,9 @@ function allSignatures() {
   const users = loadUsers("student");
   const unlinked = new Set(listUnlinkedSignatures(users, "student").map((s) => s.id));
 
-  // With a student chosen, offer their signatures plus the unlinked ones.
+  // Unlinked signatures are always offered; a student's own appear once chosen.
   const saved = listSavedSignatures("student").filter(
-    (s) => !st.studentId || s.userId === st.studentId || unlinked.has(s.id)
+    (s) => (st.studentId && s.userId === st.studentId) || unlinked.has(s.id)
   );
 
   const extra = st.sessionSigs.filter((s) => !saved.some((x) => x.variants[0].dataUrl === s.variants[0].dataUrl));
@@ -511,7 +511,7 @@ function renderSigList() {
   const student = users.find((u) => u.id === st.studentId);
   $("st-sig-scope").textContent = student
     ? `Showing ${student.name || "this student"}'s signatures and unlinked ones.`
-    : "Showing all saved signatures.";
+    : "Showing unlinked signatures. Choose a student to see theirs.";
 
   list.replaceChildren(
     ...sigs.map((sig) => {
