@@ -22,7 +22,7 @@ const PEOPLE = [
     title: "Students",
     icon: "bi-mortarboard",
     singular: "Student",
-    emptyTitle: "No students yet",
+    emptyTitle: "No Students Yet",
     exportFile: "kgec_pages_students_export.json",
   },
   {
@@ -30,7 +30,7 @@ const PEOPLE = [
     title: "Teachers",
     icon: "bi-person-badge",
     singular: "Teacher",
-    emptyTitle: "No teachers yet",
+    emptyTitle: "No Teachers Yet",
     exportFile: "kgec_pages_teachers_export.json",
   },
 ];
@@ -38,7 +38,7 @@ const PEOPLE = [
 const LAYOUT_KINDS = [
   {
     id: "student",
-    title: "Student front page layouts",
+    title: "Student Front Page Layouts",
     icon: "bi-file-earmark-text",
     layoutsKey: KEYS.STUDENT_LAYOUTS,
     lastKey: KEYS.STUDENT_LAST_USED_LAYOUT,
@@ -47,7 +47,7 @@ const LAYOUT_KINDS = [
   },
   {
     id: "teacher",
-    title: "Teacher topsheet layouts",
+    title: "Teacher Topsheet Layouts",
     icon: "bi-layout-text-window",
     layoutsKey: KEYS.TEACHER_LAYOUTS,
     lastKey: KEYS.TEACHER_LAST_USED_LAYOUT,
@@ -489,7 +489,7 @@ function renderLayoutCard(kind) {
       <div class="col-12">
         <div class="empty-state">
           <i class="bi bi-collection empty-state-icon"></i>
-          <h5>No saved layouts</h5>
+          <h5>No Saved Layouts</h5>
           <p class="mb-0"></p>
         </div>
       </div>

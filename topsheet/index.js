@@ -1401,11 +1401,7 @@ function openColumnMapper(headers) {
 
     const dlg = document.createElement("dialog");
 
-    dlg.className = "rounded-3 border-0 shadow p-0";
-
-    dlg.style.maxWidth = "420px";
-
-    dlg.style.width = "92vw";
+    dlg.className = "kg-dialog";
 
     const options = (selected) =>
       [`<option value="">Select a column...</option>`]
@@ -1413,8 +1409,9 @@ function openColumnMapper(headers) {
         .join("");
 
     dlg.innerHTML = `
-      <form method="dialog" class="p-3 d-flex flex-column gap-3">
-        <div class="fw-semibold"><i class="bi bi-table"></i> Map CSV columns</div>
+      <form method="dialog" class="d-flex flex-column">
+        <div class="kg-dialog-header"><i class="bi bi-table"></i> Map CSV Columns</div>
+        <div class="kg-dialog-body d-flex flex-column gap-3">
         <p class="small text-muted mb-0">Choose which column holds each value.</p>
         <label class="small">Roll
           <select class="form-select form-select-sm mt-1" data-f="roll">${options(guess("roll"))}</select>
@@ -1423,7 +1420,8 @@ function openColumnMapper(headers) {
           <select class="form-select form-select-sm mt-1" data-f="name">${options(guess("name"))}</select>
         </label>
         <div class="small text-danger d-none" data-err></div>
-        <div class="d-flex gap-2 justify-content-end">
+        </div>
+        <div class="kg-dialog-footer">
           <button type="button" class="btn btn-sm btn-outline-secondary" data-cancel>Cancel</button>
           <button type="submit" class="btn btn-sm btn-primary">Use these columns</button>
         </div>
@@ -1632,7 +1630,7 @@ function renderValidationUI() {
               <td
                 style="
                   word-break:break-all;
-                  font-size:.65rem;
+                  font-size:.72rem;
                 "
               >
                 ${sigName}
@@ -1805,7 +1803,7 @@ async function generateAllTopsheets() {
 
     document.getElementById("btn-export-pdf").disabled = false;
 
-    showToast(`${students.length} topsheets ready, plus 1 spare blank sheet on page 1. Click "Export All as PDF".`, "success");
+    showToast(`${students.length} topsheets ready, plus 1 spare blank sheet on page 1. Click "Export all as PDF".`, "success");
   } catch (err) {
     showToast(`Could not prepare the pages: ${err.message || err}`, "danger");
   }
@@ -2056,7 +2054,7 @@ function scrollToPage(idx) {
 
 async function exportAllAsPDF() {
   if (!state.generatedReady || !state.printFrame) {
-    showToast('Click "Generate All Topsheets" first.', "warning");
+    showToast('Click "Generate all topsheets" first.', "warning");
 
     return;
   }
