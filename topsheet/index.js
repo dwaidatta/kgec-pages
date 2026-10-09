@@ -2005,6 +2005,8 @@ async function downloadBlankSheet() {
 
     frame.contentWindow.addEventListener("afterprint", done, { once: true });
 
+    setPrintTitle(frame.contentWindow, buildTopsheetFilename("blank"));
+
     frame.contentWindow.focus();
 
     frame.contentWindow.print();
@@ -2153,9 +2155,40 @@ async function exportAllAsPDF() {
 
   showToast('In the print dialog, choose "Save as PDF".', "info");
 
-  state.printFrame.contentWindow.focus();
+  const win = state.printFrame.contentWindow;
 
-  state.printFrame.contentWindow.print();
+  setPrintTitle(win, buildTopsheetFilename(`${state.students.length}_students`));
+
+  win.focus();
+
+  win.print();
+}
+
+// The browser names a printed PDF after the page title, so the title is set
+// to a proper file name for the print and put back afterwards.
+
+function buildTopsheetFilename(suffix) {
+  const part = (value) => String(value || "").trim().replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "_");
+
+  const parts = ["Topsheet", part(state.common.subject), part(state.common.courseCode), suffix].filter(Boolean);
+
+  return parts.join("_");
+}
+
+function setPrintTitle(win, title) {
+  const previous = document.title;
+
+  document.title = title;
+
+  win.document.title = title;
+
+  win.addEventListener(
+    "afterprint",
+    () => {
+      document.title = previous;
+    },
+    { once: true }
+  );
 }
 
 // Bind sidebar events
