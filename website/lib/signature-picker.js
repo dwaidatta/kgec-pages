@@ -45,6 +45,58 @@ const FLOW_HTML = `
     <p class="text-muted" data-role="file-help">Choose a photo or scan of the signature on paper.</p>
     <input type="file" class="form-control" accept="image/*" data-role="file">
   </div>
+  <div data-step="choice" class="d-none">
+    <p class="text-muted small mb-2">What should be done with this image?</p>
+    <div class="text-center bg-light border rounded p-2 mb-3">
+      <img alt="Chosen image" data-role="choice-preview" style="max-width:100%;max-height:200px;">
+    </div>
+    <div class="d-flex flex-column flex-sm-row gap-2">
+      <button type="button" class="btn btn-outline-primary flex-fill" data-role="use-as-is">
+        <i class="bi bi-image"></i> Use as it is
+      </button>
+      <button type="button" class="btn btn-primary flex-fill" data-role="extract">
+        <i class="bi bi-pen"></i> Extract signature
+      </button>
+    </div>
+  </div>
+  <div data-step="busy" class="d-none py-3">
+    <ol class="list-unstyled mb-0 mx-auto" style="max-width:360px;" data-role="timeline"></ol>
+    <div class="text-danger text-center mt-3" data-role="busy-error"></div>
+    <div class="text-center mt-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm d-none" data-role="retry">Try another image</button>
+    </div>
+  </div>
+  <div data-step="crop" class="d-none">
+    <p class="text-muted small mb-2">The main part of the signature is selected. Drag the box or its handles to crop only what you need.</p>
+    <div class="text-center bg-light border rounded p-2 position-relative">
+      <div data-role="stage" style="position:relative;display:inline-block;max-width:100%;line-height:0;touch-action:none;"></div>
+    </div>
+    <div class="sig-adjust border rounded p-3 mt-2" data-role="adjust">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <div class="fw-semibold small">Parts missing or too much noise? Adjust:</div>
+        <div class="small d-flex align-items-center gap-2" data-role="refine-status" role="status" aria-live="polite"></div>
+      </div>
+      <div class="row g-3">
+        ${ADJUST_SLIDERS.map(
+          (s) => `
+        <div class="col-md-6">
+          <label class="form-label mb-0 d-flex justify-content-between">
+            <span>${s.label}</span><span class="text-muted" data-value="${s.key}"></span>
+          </label>
+          <input type="range" class="form-range" min="${s.min}" max="${s.max}" step="1" data-param="${s.key}">
+          <div class="form-text mt-0">${s.hint}</div>
+        </div>`
+        ).join("")}
+        <div class="col-md-6">
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="sig-keep-thin" data-param="keepThin"><label class="form-check-label" for="sig-keep-thin">Keep very thin strokes</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="sig-keep-edge" data-param="keepEdge"><label class="form-check-label" for="sig-keep-edge">Keep strokes touching the photo edge</label></div>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <button type="button" class="btn btn-outline-secondary" data-role="adjust-reset">Reset adjustments</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div data-step="variant" class="d-none">
     <p class="text-muted small mb-2" data-role="variant-help"></p>
     <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
