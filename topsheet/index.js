@@ -6,7 +6,6 @@
 
 import { renderNavbar } from "../lib/navbar.js";
 import { showToast } from "../lib/ui.js";
-import { extractMainSignature as processImage } from "../lib/signature-extract.js";
 import { openSignaturePicker } from "../lib/signature-picker.js";
 import { activateStudentFlow } from "./student/pdf-annotator.js";
 
@@ -50,6 +49,9 @@ const state = {
   sigFileMap: new Map(),
 
   generatedReady: false,
+
+  /** Hidden page holding every student's sheet, prepared by Generate and printed by Export. */
+  printFrame: null,
 
   currentPreviewIdx: 0,
 };
@@ -109,10 +111,10 @@ function normalizeStr(s) {
 
 /**
  * Canonical matching key:
- * "firstname_lastname_roll"
+ * "roll_full_name" (spaces in the full name become underscores)
  */
 function makeStudentKey(name, roll) {
-  return `${normalizeStr(name)}_${normalizeStr(roll)}`;
+  return `${normalizeStr(roll)}_${normalizeStr(name)}`;
 }
 
 /**
@@ -630,6 +632,8 @@ function refreshCommonImages() {
 
 function setImgEl(selector, dataURL) {
   sheetDoc().querySelectorAll(selector).forEach((img) => {
+    img.parentElement.classList.toggle("ts-has-img", !!dataURL);
+
     if (dataURL) {
       img.src = dataURL;
 
@@ -1090,44 +1094,6 @@ function initImagePlacement() {
 function goToStep2() {
   syncCommonFromDOM();
 
-  const required = [
-    "examinationTitle",
-
-    "collegeName",
-
-    "programme",
-
-    "subject",
-
-    "semester",
-
-    "teacherName",
-
-    "fullMarks",
-
-    "duration",
-  ];
-
-  const missing = required.filter((k) => !state.common[k]?.trim());
-
-  if (missing.length) {
-    showToast(`Please fill: ${missing.join(", ")}`, "warning");
-
-    return;
-  }
-
-  if (!state.common.processedTeacherSig) {
-    showToast("Please add the teacher signature.", "warning");
-
-    return;
-  }
-
-  if (!state.common.processedCollegeSeal) {
-    showToast("Please add the college seal.", "warning");
-
-    return;
-  }
-
   state.step = 2;
 
   placeTarget = null;
@@ -1152,6 +1118,8 @@ function goToStep2() {
 
   sheetDoc().getElementById("ts-preview").classList.remove("ts-editable");
 
+  sheetDoc().getElementById("ts-preview").classList.add("ts-show-sigbox");
+
   /*
     The marks action panel belongs
     to Step 1, so it disappears with
@@ -1174,6 +1142,11 @@ function goToStep1() {
   const preview = sheetDoc().getElementById("ts-preview");
 
   preview.classList.add("ts-editable");
+
+  preview.classList.remove("ts-show-sigbox");
+
+  // Step 1 can change the sheet, so the prepared pages are out of date.
+  discardPrintFrame();
 
   restorePreviewFromState();
 }
@@ -1220,7 +1193,7 @@ function parseCSV(text) {
 
     skipEmptyLines: true,
 
-    transformHeader: (h) => h.trim().toLowerCase(),
+    transformHeader: (h) => h.trim(),
   });
 
   if (result.errors.length) {
@@ -1233,19 +1206,95 @@ function parseCSV(text) {
     throw new Error("CSV is empty.");
   }
 
-  if (!("name" in rows[0]) || !("roll" in rows[0])) {
-    throw new Error('CSV must have "name" and "roll" columns (header row).');
-  }
+  return { headers: result.meta.fields || Object.keys(rows[0]), rows };
+}
 
-  return rows
-    .map((r) => ({
-      name: String(r.name || "").trim(),
+// Popup asking which CSV columns hold the roll and the name.
+// Resolves { roll, name } (column headers) or null if cancelled.
 
-      roll: String(r.roll || "").trim(),
+function openColumnMapper(headers) {
+  return new Promise((resolve) => {
+    const guess = (word) => headers.find((h) => h.toLowerCase().includes(word)) ?? "";
 
-      extra: r,
-    }))
-    .filter((r) => r.name && r.roll);
+    const dlg = document.createElement("dialog");
+
+    dlg.className = "rounded-3 border-0 shadow p-0";
+
+    dlg.style.maxWidth = "420px";
+
+    dlg.style.width = "92vw";
+
+    const options = (selected) =>
+      [`<option value="">Select a column...</option>`]
+        .concat(headers.map((h) => `<option value="${escHtml(h)}"${h === selected ? " selected" : ""}>${escHtml(h)}</option>`))
+        .join("");
+
+    dlg.innerHTML = `
+      <form method="dialog" class="p-3 d-flex flex-column gap-3">
+        <div class="fw-semibold"><i class="bi bi-table"></i> Map CSV columns</div>
+        <p class="small text-muted mb-0">Choose which column holds each value.</p>
+        <label class="small">Roll
+          <select class="form-select form-select-sm mt-1" data-f="roll">${options(guess("roll"))}</select>
+        </label>
+        <label class="small">Full name
+          <select class="form-select form-select-sm mt-1" data-f="name">${options(guess("name"))}</select>
+        </label>
+        <div class="small text-danger d-none" data-err></div>
+        <div class="d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-cancel>Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary">Use these columns</button>
+        </div>
+      </form>
+    `;
+
+    let result = null;
+
+    const rollSel = dlg.querySelector('[data-f="roll"]');
+
+    const nameSel = dlg.querySelector('[data-f="name"]');
+
+    const errEl = dlg.querySelector("[data-err]");
+
+    dlg.querySelector("[data-cancel]").addEventListener("click", () => dlg.close());
+
+    dlg.querySelector("form").addEventListener("submit", (e) => {
+      if (!rollSel.value || !nameSel.value || rollSel.value === nameSel.value) {
+        e.preventDefault();
+
+        errEl.textContent = "Pick a different column for roll and for name.";
+
+        errEl.classList.remove("d-none");
+
+        return;
+      }
+
+      result = { roll: rollSel.value, name: nameSel.value };
+    });
+
+    dlg.addEventListener("close", () => {
+      dlg.remove();
+
+      resolve(result);
+    });
+
+    document.body.appendChild(dlg);
+
+    dlg.showModal();
+  });
+}
+
+// Student signatures are used exactly as supplied (no extraction).
+
+function readAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+
+    reader.onerror = () => reject(reader.error);
+
+    reader.readAsDataURL(file);
+  });
 }
 
 // Signature folder map
@@ -1290,10 +1339,10 @@ function matchStudents(csvStudents, sigMap) {
 
     // 2. Roll fallback
 
-    const rollSuffix = "_" + normalizeStr(s.roll);
+    const rollPrefix = normalizeStr(s.roll) + "_";
 
     for (const [fkey, file] of sigMap.entries()) {
-      if (fkey.endsWith(rollSuffix)) {
+      if (fkey.startsWith(rollPrefix)) {
         return {
           ...s,
 
@@ -1532,41 +1581,26 @@ async function generateAllTopsheets() {
 
   btn.disabled = true;
 
+  discardPrintFrame();
+
   const needsProcessing = students.filter((s) => s.sigFile && !s.processedSig);
 
-  if (needsProcessing.length === 0) {
-    document.getElementById("btn-export-pdf").disabled = false;
-
-    document.getElementById("btn-export-zip").disabled = false;
-
-    state.generatedReady = true;
-
-    showToast('All topsheets ready! Click "Export All as PDF" or "PDFs (ZIP)".', "success");
-
-    btn.disabled = false;
-
-    return;
+  if (needsProcessing.length) {
+    showToast(`Loading ${needsProcessing.length} student signature(s)...`, "info");
   }
-
-  showToast(`Processing ${needsProcessing.length} student signature(s)...`, "info");
 
   for (let i = 0; i < students.length; i++) {
     const s = students[i];
 
-    const pct = Math.round((i / students.length) * 100);
+    const pct = Math.round((i / students.length) * 90);
 
-    setProgress(`Processing student ${i + 1} / ${students.length}...`, pct);
+    setProgress(`Loading student ${i + 1} / ${students.length}...`, pct);
 
     if (s.sigFile && !s.processedSig) {
       try {
-        s.processedSig = await processImage(s.sigFile, {
-          transparent: true,
-          threshold: 230,
-          maxWidth: 600,
-          maxHeight: 200,
-        });
+        s.processedSig = await readAsDataUrl(s.sigFile);
       } catch (err) {
-        console.warn(`Sig processing failed for ${s.name}:`, err);
+        console.warn(`Could not read signature for ${s.name}:`, err);
 
         s.processedSig = null;
       }
@@ -1575,23 +1609,33 @@ async function generateAllTopsheets() {
     await sleep(5);
   }
 
+  try {
+    setProgress("Preparing pages...", 90);
+
+    state.printFrame = await buildPrintFrame(students, document.getElementById("ts-all-inner"));
+
+    showAllPages(students.length);
+
+    state.generatedReady = true;
+
+    document.getElementById("btn-export-pdf").disabled = false;
+
+    showToast(`${students.length} topsheets ready! Click "Export All as PDF".`, "success");
+  } catch (err) {
+    console.error("Preparing pages failed:", err);
+
+    showToast("Could not prepare the pages. See console for details.", "danger");
+  }
+
   setProgress("Done!", 100);
 
-  await sleep(600);
+  await sleep(300);
 
   hideProgress();
-
-  state.generatedReady = true;
-
-  document.getElementById("btn-export-pdf").disabled = false;
-
-  document.getElementById("btn-export-zip").disabled = false;
 
   btn.disabled = false;
 
   previewStudent(state.currentPreviewIdx);
-
-  showToast(`${students.length} topsheets ready! Click "Export All as PDF" or "PDFs (ZIP)".`, "success");
 }
 
 // Build one student's topsheet for PDF export.
@@ -1603,7 +1647,7 @@ function buildTopsheetEl(student) {
 
   doc.removeAttribute("id");
 
-  doc.classList.remove("ts-editable");
+  doc.classList.remove("ts-editable", "ts-show-sigbox");
 
   doc.querySelectorAll("[contenteditable]").forEach((el) => el.removeAttribute("contenteditable"));
 
@@ -1649,7 +1693,7 @@ function buildTopsheetEl(student) {
 // Wait for all images
 
 async function waitForImages(container) {
-  // Make sure the web font is loaded before html2canvas captures the sheet.
+  // Make sure the web font is loaded before the sheet is printed.
   await document.fonts.load('7pt "Roboto Condensed"');
 
   await document.fonts.load('bold 7pt "Roboto Condensed"');
@@ -1674,25 +1718,60 @@ async function waitForImages(container) {
 }
 
 // Download the sheet as it is now, with the student fields left blank.
-// Printed from a hidden copy of the sheet (like the front page generator), so the
-// PDF keeps real text and is sharp. The browser's print dialog saves it as PDF.
 
 async function downloadBlankSheet() {
   const btn = document.getElementById("btn-download-blank");
 
   btn.disabled = true;
 
-  const iframe = document.createElement("iframe");
+  let frame = null;
 
-  iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:210mm;height:297mm;border:0";
-
-  document.body.appendChild(iframe);
-
-  const cleanup = () => {
-    iframe.remove();
+  const done = () => {
+    frame?.remove();
 
     btn.disabled = false;
   };
+
+  try {
+    frame = await buildPrintFrame([null]);
+
+    frame.contentWindow.addEventListener("afterprint", done, { once: true });
+
+    frame.contentWindow.focus();
+
+    frame.contentWindow.print();
+  } catch (err) {
+    console.error("Sheet download failed:", err);
+
+    showToast("Download failed. See console for details.", "danger");
+
+    done();
+  }
+}
+
+// Build a hidden page with one sheet per entry (null = blank student fields), one
+// per page, ready to print. Printing a copy of the sheet (like the front page
+// generator) keeps real text, so the PDF is sharp. The browser's print dialog
+// saves it as PDF. Building is the slow part, so the student export does it ahead
+// of time, during Generate.
+
+// Each page takes 297mm plus PAGE_GAP of space between pages on screen.
+const PAGE_GAP_MM = 8;
+
+// With a `host`, the page is built inside it so it can be shown on screen (every
+// sheet stacked, one below the other); without one it stays off screen.
+
+async function buildPrintFrame(students, host = null) {
+  const iframe = document.createElement("iframe");
+
+  iframe.style.cssText = host
+    ? `display:block;width:210mm;height:${students.length * (297 + PAGE_GAP_MM) + 1}mm;border:0`
+    : "position:fixed;left:-9999px;top:0;width:210mm;height:297mm;border:0";
+
+  // The left pane scrolls the pages; the frame itself must not.
+  iframe.scrolling = "no";
+
+  (host ?? document.body).appendChild(iframe);
 
   try {
     syncCommonFromDOM();
@@ -1707,19 +1786,35 @@ async function downloadBlankSheet() {
 
     const doc = iframe.contentDocument;
 
-    const sheet = buildTopsheetEl(null);
+    const sheets = students.map((s, i) => {
+      const sheet = buildTopsheetEl(s);
 
-    sheet.style.width = "210mm";
+      sheet.style.width = "210mm";
 
-    sheet.style.height = "297mm";
+      sheet.style.height = "297mm";
 
-    sheet.style.overflow = "hidden";
+      sheet.style.overflow = "hidden";
 
-    doc.getElementById("ts-preview").replaceWith(sheet);
+      if (i < students.length - 1) {
+        sheet.style.breakAfter = "page";
+      }
+
+      return sheet;
+    });
+
+    doc.getElementById("ts-preview").replaceWith(...sheets);
 
     const style = doc.createElement("style");
 
-    style.textContent = "@page { size: A4; margin: 0; } html, body { background: #fff; }";
+    style.textContent = `
+      @page { size: A4; margin: 0; }
+      html, body { background: #fff; margin: 0; }
+      @media screen {
+        html, body { overflow: hidden; }
+        html, body { background: #dcece6; }
+        .ts-doc { margin: 0 0 ${PAGE_GAP_MM}mm; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.25); }
+      }
+    `;
 
     doc.head.appendChild(style);
 
@@ -1741,7 +1836,7 @@ async function downloadBlankSheet() {
 
     const win = iframe.contentWindow;
 
-    [sheet, ...sheet.querySelectorAll("*")].forEach((el) => {
+    sheets.flatMap((sheet) => [sheet, ...sheet.querySelectorAll("*")]).forEach((el) => {
       el.style.fontWeight = parseInt(win.getComputedStyle(el).fontWeight, 10) >= 600 ? 600 : 300;
     });
 
@@ -1753,322 +1848,62 @@ async function downloadBlankSheet() {
 
     await waitForImages(doc.body);
 
-    iframe.contentWindow.addEventListener("afterprint", cleanup, { once: true });
-
-    iframe.contentWindow.focus();
-
-    iframe.contentWindow.print();
+    return iframe;
   } catch (err) {
-    console.error("Sheet download failed:", err);
+    iframe.remove();
 
-    showToast("Download failed. See console for details.", "danger");
-
-    cleanup();
+    throw err;
   }
 }
 
-// Export all as PDF
+// The prepared student pages go stale when anything feeding them changes.
 
-async function exportAllAsPDF() {
-  if (!state.generatedReady) {
+function discardPrintFrame() {
+  state.printFrame?.remove();
+
+  state.printFrame = null;
+
+  document.getElementById("ts-all-outer").classList.remove("ts-all-on");
+
+  document.getElementById("ts-single-outer").style.display = "";
+
+  state.generatedReady = false;
+
+  document.getElementById("btn-export-pdf").disabled = true;
+}
+
+// Show every student's page in the preview pane in place of the single sheet.
+
+function showAllPages(count) {
+  const outer = document.getElementById("ts-all-outer");
+
+  outer.style.setProperty("--ts-all-h", `${count * (297 + PAGE_GAP_MM) + 1}mm`);
+
+  outer.classList.add("ts-all-on");
+
+  document.getElementById("ts-single-outer").style.display = "none";
+}
+
+// Scroll the stacked pages to one student's page.
+
+function scrollToPage(idx) {
+  state.printFrame?.contentDocument.querySelectorAll(".ts-doc")[idx]?.scrollIntoView({ block: "start", behavior: "smooth" });
+}
+
+// Export all students as one PDF (the pages were prepared by Generate).
+
+function exportAllAsPDF() {
+  if (!state.generatedReady || !state.printFrame) {
     showToast('Click "Generate All Topsheets" first.', "warning");
 
     return;
   }
 
-  const students = state.students;
+  showToast('In the print dialog, choose "Save as PDF".', "info");
 
-  if (!students.length) {
-    showToast("No students to export.", "warning");
+  state.printFrame.contentWindow.focus();
 
-    return;
-  }
-
-  const btnExport = document.getElementById("btn-export-pdf");
-
-  const btnGenerate = document.getElementById("btn-generate");
-
-  btnExport.disabled = true;
-
-  btnGenerate.disabled = true;
-
-  const { jsPDF } = window.jspdf;
-
-  const pdf = new jsPDF({
-    orientation: "portrait",
-
-    unit: "mm",
-
-    format: "a4",
-  });
-
-  const wrap = document.createElement("div");
-
-  wrap.style.cssText = [
-    "position:fixed",
-
-    "left:-9999px",
-
-    "top:0",
-
-    "width:794px",
-
-    "height:1123px",
-
-    "overflow:hidden",
-
-    "background:#fff",
-
-    "z-index:-9999",
-  ].join(";");
-
-  document.body.appendChild(wrap);
-
-  try {
-    for (let i = 0; i < students.length; i++) {
-      const s = students[i];
-
-      const pct = Math.round((i / students.length) * 100);
-
-      setProgress(`Exporting page ${i + 1} / ${students.length}...`, pct);
-
-      wrap.replaceChildren(buildTopsheetEl(s));
-
-      await waitForImages(wrap);
-
-      await sleep(60);
-
-      const canvas = await html2canvas(wrap.firstElementChild, {
-        scale: 2,
-
-        useCORS: true,
-
-        allowTaint: true,
-
-        backgroundColor: "#ffffff",
-
-        width: 794,
-
-        height: 1123,
-
-        scrollX: 0,
-
-        scrollY: 0,
-
-        logging: false,
-      });
-
-      if (i > 0) {
-        pdf.addPage();
-      }
-
-      pdf.addImage(
-        canvas.toDataURL("image/jpeg", 0.92),
-
-        "JPEG",
-
-        0,
-
-        0,
-
-        210,
-
-        297
-      );
-
-      await sleep(30);
-    }
-
-    setProgress("Saving...", 100);
-
-    await sleep(200);
-
-    pdf.save(`topsheets_${Date.now()}.pdf`);
-
-    hideProgress();
-
-    showToast(`PDF with ${students.length} page(s) saved!`, "success");
-  } catch (err) {
-    console.error("PDF export failed:", err);
-
-    showToast("PDF export failed. See console for details.", "danger");
-
-    hideProgress();
-  } finally {
-    document.body.removeChild(wrap);
-
-    btnExport.disabled = false;
-
-    btnGenerate.disabled = false;
-  }
-}
-
-// Export all as separate PDFs in ZIP
-
-async function exportAllAsZIP() {
-  if (!state.generatedReady) {
-    showToast('Click "Generate All Topsheets" first.', "warning");
-
-    return;
-  }
-
-  const students = state.students;
-
-  if (!students.length) {
-    showToast("No students to export.", "warning");
-
-    return;
-  }
-
-  const btnExportPdf = document.getElementById("btn-export-pdf");
-
-  const btnExportZip = document.getElementById("btn-export-zip");
-
-  const btnGenerate = document.getElementById("btn-generate");
-
-  btnExportPdf.disabled = true;
-
-  btnExportZip.disabled = true;
-
-  btnGenerate.disabled = true;
-
-  const zip = new JSZip();
-
-  const wrap = document.createElement("div");
-
-  wrap.style.cssText = [
-    "position:fixed",
-
-    "left:-9999px",
-
-    "top:0",
-
-    "width:794px",
-
-    "height:1123px",
-
-    "overflow:hidden",
-
-    "background:#fff",
-
-    "z-index:-9999",
-  ].join(";");
-
-  document.body.appendChild(wrap);
-
-  try {
-    for (let i = 0; i < students.length; i++) {
-      const s = students[i];
-
-      const pct = Math.round((i / students.length) * 100);
-
-      setProgress(`Exporting PDF ${i + 1} / ${students.length}...`, pct);
-
-      wrap.replaceChildren(buildTopsheetEl(s));
-
-      await waitForImages(wrap);
-
-      await sleep(60);
-
-      const canvas = await html2canvas(wrap.firstElementChild, {
-        scale: 2,
-
-        useCORS: true,
-
-        allowTaint: true,
-
-        backgroundColor: "#ffffff",
-
-        width: 794,
-
-        height: 1123,
-
-        scrollX: 0,
-
-        scrollY: 0,
-
-        logging: false,
-      });
-
-      const { jsPDF } = window.jspdf;
-
-      const pdf = new jsPDF({
-        orientation: "portrait",
-
-        unit: "mm",
-
-        format: "a4",
-      });
-
-      pdf.addImage(
-        canvas.toDataURL("image/jpeg", 0.92),
-
-        "JPEG",
-
-        0,
-
-        0,
-
-        210,
-
-        297
-      );
-
-      const pdfArrayBuffer = pdf.output("arraybuffer");
-
-      const rollClean = normalizeStr(s.roll || `student_${i + 1}`);
-
-      const nameClean = normalizeStr(s.name || "");
-
-      const filename = `${rollClean}_${nameClean}.pdf`.replace(/^_+|_+$/g, "");
-
-      zip.file(filename, pdfArrayBuffer);
-
-      await sleep(30);
-    }
-
-    setProgress("Zipping files...", 100);
-
-    await sleep(200);
-
-    const content = await zip.generateAsync({
-      type: "blob",
-    });
-
-    const url = URL.createObjectURL(content);
-
-    const a = document.createElement("a");
-
-    a.href = url;
-
-    a.download = `topsheets_${Date.now()}.zip`;
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    document.body.removeChild(a);
-
-    URL.revokeObjectURL(url);
-
-    hideProgress();
-
-    showToast(`ZIP file with ${students.length} PDF(s) downloaded!`, "success");
-  } catch (err) {
-    console.error("ZIP export failed:", err);
-
-    showToast("ZIP export failed. See console for details.", "danger");
-
-    hideProgress();
-  } finally {
-    document.body.removeChild(wrap);
-
-    btnExportPdf.disabled = false;
-
-    btnExportZip.disabled = false;
-
-    btnGenerate.disabled = false;
-  }
+  state.printFrame.contentWindow.print();
 }
 
 // Bind sidebar events
@@ -2121,9 +1956,27 @@ function bindSidebarEvents() {
 
     const reader = new FileReader();
 
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       try {
-        const rows = parseCSV(ev.target.result);
+        const { headers, rows: rawRows } = parseCSV(ev.target.result);
+
+        const map = await openColumnMapper(headers);
+
+        if (!map) {
+          e.target.value = "";
+
+          document.getElementById("stat-csv").textContent = "Column mapping cancelled.";
+
+          return;
+        }
+
+        const rows = rawRows
+          .map((r) => ({ name: String(r[map.name] || "").trim(), roll: String(r[map.roll] || "").trim() }))
+          .filter((r) => r.name && r.roll);
+
+        if (!rows.length) {
+          throw new Error("No rows with both a roll and a name in the chosen columns.");
+        }
 
         state.students = rows.map((r) => ({
           name: r.name,
@@ -2141,11 +1994,7 @@ function bindSidebarEvents() {
 
         document.getElementById("stat-csv").textContent = `${rows.length} student(s) loaded.`;
 
-        document.getElementById("btn-export-pdf").disabled = true;
-
-        document.getElementById("btn-export-zip").disabled = true;
-
-        state.generatedReady = false;
+        discardPrintFrame();
 
         tryMatch();
       } catch (err) {
@@ -2171,11 +2020,7 @@ function bindSidebarEvents() {
 
     document.getElementById("stat-folder").textContent = `${state.sigFileMap.size} image file(s) found.`;
 
-    document.getElementById("btn-export-pdf").disabled = true;
-
-    document.getElementById("btn-export-zip").disabled = true;
-
-    state.generatedReady = false;
+    discardPrintFrame();
 
     tryMatch();
   });
@@ -2183,7 +2028,11 @@ function bindSidebarEvents() {
   // Student preview selector
 
   document.getElementById("sel-student").addEventListener("change", (e) => {
-    previewStudent(parseInt(e.target.value, 10));
+    const idx = parseInt(e.target.value, 10);
+
+    previewStudent(idx);
+
+    scrollToPage(idx);
   });
 
   // Generate
@@ -2193,10 +2042,6 @@ function bindSidebarEvents() {
   // Export PDF
 
   document.getElementById("btn-export-pdf").addEventListener("click", exportAllAsPDF);
-
-  // Export ZIP
-
-  document.getElementById("btn-export-zip").addEventListener("click", exportAllAsZIP);
 }
 
 // Role chooser (teacher / student)

@@ -245,6 +245,35 @@
       flex: 1 1 auto;
     }
 
+    /* ALL STUDENT PAGES, stacked in the preview pane (scaled like the single sheet) */
+
+    #ts-all-outer {
+      --s: 1;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    #ts-all-outer.ts-all-on {
+      width: calc(210mm * var(--s));
+      height: calc(var(--ts-all-h) * var(--s));
+      overflow: visible;
+    }
+
+    #ts-all-inner {
+      width: 210mm;
+      transform: scale(var(--s));
+      transform-origin: top left;
+    }
+
+    @media (max-width: 991.98px) {
+      #ts-all-outer { --s: .62; }
+    }
+
+    @media (max-width: 575.98px) {
+      #ts-all-outer { --s: .42; }
+    }
+
     .ts-col-heading {
       display: flex;
       align-items: center;
@@ -572,13 +601,22 @@
 
     <div class="generator-preview custom-scroll">
 
-      <div class="a4-sheet-outer">
+      <div class="a4-sheet-outer" id="ts-single-outer">
 
         <div class="a4-sheet">
 
           <iframe id="ts-frame" class="a4-frame" scrolling="no" src="./topsheet/topsheet.html"></iframe>
 
         </div>
+
+      </div>
+
+
+      <!-- ALL STUDENT PAGES (filled in by Generate) -->
+
+      <div id="ts-all-outer">
+
+        <div id="ts-all-inner"></div>
 
       </div>
 
@@ -927,7 +965,7 @@
 
               <p class="small text-muted mb-1">
 
-                Want to prepare a sheet for every student yourself? Continue to the next step to upload a student CSV and generate one filled sheet per student. This needs the teacher signature and college seal added above.
+                Want to prepare a sheet for every student yourself? Continue to the next step to upload a student CSV and generate one filled sheet per student.
 
               </p>
 
@@ -989,8 +1027,7 @@
 
               <p class="small text-muted mb-0">
 
-                Requires <code>name</code> and <code>roll</code> columns.
-                Additional columns are ignored.
+                Needs a header row. After choosing the file you pick which columns hold the roll and the name. Other columns are ignored.
 
               </p>
 
@@ -1031,12 +1068,19 @@
               <p class="small text-muted mb-0">
 
                 File naming:
-                <code>FirstName_LastName_Roll.png</code>
+                <code>Roll_FullName.png</code>
+                (spaces in the full name become underscores)
+
+                <br>
+
+                Students must supply clear, transparent signatures already processed with the
+                Signature Extractor on this website. They are placed exactly as given, with no
+                extraction or clean-up.
 
                 <br>
 
                 e.g.
-                <code>Arpan_Biswas_101.png</code>
+                <code>101_Student_Name_Surname.png</code>
 
               </p>
 
@@ -1235,21 +1279,6 @@
               </button>
 
 
-              <!-- ZIP -->
-
-              <button
-                id="btn-export-zip"
-                class="btn btn-secondary btn-lg w-100"
-                disabled
-              >
-
-                <i class="bi bi-file-zip"></i>
-
-                Export All as PDFs (ZIP)
-
-              </button>
-
-
             </div>
 
           </div>
@@ -1266,22 +1295,7 @@
   <!-- JAVASCRIPT LIBRARIES -->
 
   <script
-    src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
-  ></script>
-
-
-  <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  ></script>
-
-
-  <script
-    src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
-  ></script>
-
-
-  <script
-    src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"
   ></script>
 
 

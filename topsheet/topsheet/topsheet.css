@@ -425,6 +425,49 @@
   object-fit: contain;
 }
 
+/* Student signature box: half the width of the left column */
+.ts-student-sig-area {
+  width: 50%;
+}
+
+/* Step 2 only: shows the box a student signature is fitted into (not exported) */
+.ts-show-sigbox .ts-student-sig-area {
+  outline: 1px dotted #6b7280;
+}
+
+/* Step 1 only: show where the teacher signature and seal go, until they are placed (not exported) */
+.ts-teacher-sig-area {
+  /* the right column centres its children, so the box needs a width of its own;
+     60% of this column matches the width of the student signature box */
+  width: 60%;
+
+  align-self: center;
+}
+
+.ts-editable .ts-teacher-sig-area:not(.ts-has-img) {
+  outline: 1px dotted #6b7280;
+}
+
+.ts-seal-area {
+  position: relative;
+}
+
+.ts-editable .ts-seal-area:not(.ts-has-img)::before {
+  content: "";
+
+  position: absolute;
+
+  bottom: 0;
+  left: 50%;
+
+  width: 22mm;
+  height: 22mm;
+
+  transform: translateX(-50%);
+
+  outline: 1px dotted #6b7280;
+}
+
 .ts-sig-left .ts-sig-img-area {
   justify-content: flex-start;
 }
