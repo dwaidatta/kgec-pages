@@ -1,6 +1,6 @@
 import { getItem, setItem, KEYS } from "../lib/storage.js";
 import { loadUsers } from "../lib/users.js";
-import { showToast, promptForText } from "../lib/ui.js";
+import { showToast, showLoadingToast, promptForText } from "../lib/ui.js";
 import { renderNavbar } from "../lib/navbar.js";
 import { generateFrontPagePdf } from "../lib/pdf-generate.js";
 import { askToSaveLayout } from "../lib/layout-save-prompt.js";
@@ -454,11 +454,16 @@ async function exportCurrentAsPdf() {
   const users = loadUsers();
   const idsToExport = selectedUserIds.length > 0 ? selectedUserIds : [null];
 
-  showToast("Generating PDF(s)...", "info");
+  const loading = showLoadingToast("Preparing the PDF. Please wait...");
 
   for (let index = 0; index < idsToExport.length; index++) {
     const userId = idsToExport[index];
     const user = userId ? users.find((u) => u.id === userId) : null;
+    loading.update(
+      idsToExport.length > 1
+        ? `Preparing PDF ${index + 1} of ${idsToExport.length}${user ? ` (${user.name})` : ""}. Choose "Save as PDF" in the print dialog.`
+        : 'Preparing the PDF. Choose "Save as PDF" in the print dialog.'
+    );
     try {
       document.title = buildExportFilename(user, index);
       await generateFrontPagePdf(currentLayout, user, "./front-page/front-page.html");
@@ -467,6 +472,8 @@ async function exportCurrentAsPdf() {
       showToast(`Failed to generate PDF${user ? ` for ${user.name}` : ""}.`, "danger");
     }
   }
+
+  loading.close();
 
   showToast(`Generated ${idsToExport.length} PDF(s).`, "success");
 }

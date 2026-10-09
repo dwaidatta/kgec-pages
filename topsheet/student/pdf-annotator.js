@@ -4,7 +4,7 @@
  * Fully client-side (pdf.js to show pages, pdf-lib to write the result).
  */
 
-import { showToast } from "../../lib/ui.js";
+import { showToast, showLoadingToast } from "../../lib/ui.js";
 import { preloadSignatureEngine } from "../../lib/signature-extract.js";
 import { openSignaturePicker } from "../../lib/signature-picker.js";
 import { listSavedSignatures, listUnlinkedSignatures, saveSignature, removeSavedSignature } from "../../lib/saved-signatures.js";
@@ -684,6 +684,8 @@ async function downloadPdf() {
 
   btn.disabled = true;
 
+  const loading = showLoadingToast("Creating the PDF. Please wait...");
+
   try {
     const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
 
@@ -765,6 +767,8 @@ async function downloadPdf() {
   } catch (err) {
     showToast(`Could not create the PDF: ${err.message || err}`, "danger");
   } finally {
+    loading.close();
+
     updateDownloadState();
   }
 }

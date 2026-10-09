@@ -1425,6 +1425,12 @@ a.topbar-chip:focus {
   font-size: 0.95rem;
 }
 
+.kg-toast .kg-toast-icon .spinner-border {
+  --bs-spinner-width: 1rem;
+  --bs-spinner-height: 1rem;
+  --bs-spinner-border-width: 0.15rem;
+}
+
 .kg-toast .toast-body {
   flex: 1 1 auto;
   min-width: 0;

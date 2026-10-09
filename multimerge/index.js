@@ -1,5 +1,5 @@
 import { renderNavbar } from "../lib/navbar.js";
-import { showToast, confirmAndRun } from "../lib/ui.js";
+import { showToast, showLoadingToast, confirmAndRun } from "../lib/ui.js";
 import { buildMergedFilename, mergeGroupFiles, renderFirstPageThumbnail } from "../lib/pdf-merge.js";
 
 let groups = [];
@@ -142,10 +142,11 @@ async function handleMergeAndSave() {
     return;
   }
 
-  showToast(`Merging ${withFiles.length} group(s)...`, "info");
+  const loading = showLoadingToast(`Merging ${withFiles.length} group(s). Please wait...`);
 
   let successCount = 0;
-  for (const group of withFiles) {
+  for (const [i, group] of withFiles.entries()) {
+    loading.update(`Merging group ${i + 1} of ${withFiles.length}. Please wait...`);
     try {
       const mergedBytes = await mergeGroupFiles(window.PDFLib, group.files);
       const filename = buildMergedFilename(group.label, group.files);
@@ -156,6 +157,8 @@ async function handleMergeAndSave() {
       showToast(`Failed to merge "${group.label || "Untitled group"}". Make sure every file is a valid PDF.`, "danger");
     }
   }
+
+  loading.close();
 
   if (emptyCount > 0) {
     showToast(`Skipped ${emptyCount} selected group(s) with no PDFs.`, "warning");

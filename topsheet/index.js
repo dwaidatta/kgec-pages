@@ -5,7 +5,7 @@
  */
 
 import { renderNavbar } from "../lib/navbar.js";
-import { showToast, promptForText } from "../lib/ui.js";
+import { showToast, showLoadingToast, promptForText } from "../lib/ui.js";
 import { getItem, setItem, KEYS } from "../lib/storage.js";
 import { askToSaveLayout } from "../lib/layout-save-prompt.js";
 import { getDefaultLayout, isLockedLayout } from "../lib/default-layout.js";
@@ -1994,7 +1994,11 @@ async function downloadBlankSheet() {
 
   let frame = null;
 
+  const loading = showLoadingToast("Preparing the blank sheet. Please wait...");
+
   const done = () => {
+    loading.close();
+
     frame?.remove();
 
     btn.disabled = false;
@@ -2002,6 +2006,10 @@ async function downloadBlankSheet() {
 
   try {
     frame = await buildPrintFrame([null]);
+
+    loading.update('Opening the print dialog. Choose "Save as PDF".');
+
+    await sleep(50);
 
     frame.contentWindow.addEventListener("afterprint", done, { once: true });
 
@@ -2153,11 +2161,16 @@ async function exportAllAsPDF() {
 
   if (!(await offerToSaveLayout())) return;
 
-  showToast('In the print dialog, choose "Save as PDF".', "info");
+  const loading = showLoadingToast(`Preparing ${state.students.length + 1} pages. This can take a moment. Then choose "Save as PDF".`);
 
   const win = state.printFrame.contentWindow;
 
+  win.addEventListener("afterprint", () => loading.close(), { once: true });
+
   setPrintTitle(win, buildTopsheetFilename(`${state.students.length}_students`));
+
+  // Let the toast paint first; printing many pages blocks the page for a while.
+  await sleep(50);
 
   win.focus();
 
