@@ -24,8 +24,48 @@ if (!globalThis.localStorage) {
   globalThis.localStorage = new MemoryStorage();
 }
 
+// Just enough element surface for the ui.js toasts. Shown toasts are recorded in
+// globalThis.__toasts (their class names) so tests can assert a warning appeared.
+class FakeElement {
+  constructor(tag) {
+    this.tagName = tag;
+    this.children = [];
+    this.attributes = {};
+    this.className = "";
+  }
+  appendChild(child) {
+    this.children.push(child);
+    return child;
+  }
+  setAttribute(name, value) {
+    this.attributes[name] = value;
+  }
+  addEventListener() {}
+  querySelector() {
+    return new FakeElement("div");
+  }
+  remove() {}
+}
+
 if (!globalThis.document) {
   globalThis.document = {
+    body: new FakeElement("body"),
     getElementById: () => null,
+    createElement: (tag) => new FakeElement(tag),
+  };
+}
+
+globalThis.__toasts = [];
+if (!globalThis.bootstrap) {
+  globalThis.bootstrap = {
+    Toast: class {
+      constructor(el) {
+        this.el = el;
+      }
+      show() {
+        globalThis.__toasts.push(this.el.className);
+      }
+      hide() {}
+    },
   };
 }

@@ -5,6 +5,11 @@
   "type": "module",
   "description": "Static site for generating KGEC assignment front pages.",
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
   }
 }
