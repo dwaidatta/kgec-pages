@@ -24,7 +24,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Unit and end-to-end tests (the same ones CI runs); the deploy only starts if they pass.
+  tests:
+    uses: ./.github/workflows/ci.yml
+
   build-and-deploy:
+    needs: tests
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -34,17 +39,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-
-      - name: Validate JSON files
-        run: node .github/scripts/validate-json.js
-
-      - name: Run unit tests
-        run: npm test
 
       - name: Bump version and create GitHub release
         env:
