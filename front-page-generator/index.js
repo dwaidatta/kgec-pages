@@ -112,7 +112,7 @@ function renderLayoutSelect(savedLayouts, defaultLayout) {
     else next = freshLayouts[key];
 
     if (!next) {
-      console.warn(`Layout "${key}" not found, falling back to default.`);
+      showToast(`Layout "${key}" not found, using the default.`, "warning");
       next = defaultLayout;
       select.value = "__default__";
     }
@@ -464,7 +464,6 @@ async function exportCurrentAsPdf() {
       await generateFrontPagePdf(currentLayout, user, "./front-page/front-page.html");
       await sleep(300);
     } catch (err) {
-      console.error(`Failed to export PDF for user ${userId}:`, err);
       showToast(`Failed to generate PDF${user ? ` for ${user.name}` : ""}.`, "danger");
     }
   }
@@ -490,7 +489,7 @@ async function init() {
   try {
     defaultLayout = await getDefaultLayout();
   } catch (err) {
-    console.error("Falling back to stored default layout:", err);
+    showToast("Could not load the default layout from the server. Using the stored one.", "warning");
     defaultLayout = getStoredDefaultLayout();
   }
 
@@ -516,7 +515,7 @@ function waitForIframeReadyThenRender(attempt = 0) {
   }
 
   if (attempt > 50) {
-    console.error("Preview iframe never became ready.");
+    showToast("The preview could not be loaded. Try refreshing the page.", "danger");
     return;
   }
 

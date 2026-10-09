@@ -1,11 +1,6 @@
-import { getItem,KEYS } from "./lib/storage.js";
 import { renderNavbar } from "./lib/navbar.js";
+import { showToast } from "./lib/ui.js";
 renderNavbar("");
-
-function init() {
-  const profile = getItem(KEYS.PROFILE);
-  console.log("Landing page loaded. Profile exists:", Boolean(profile));
-}
 
 async function initHomeMeta() {
   const container = document.getElementById("home-meta");
@@ -31,7 +26,7 @@ async function initHomeMeta() {
       </span>
     `;
   } catch (err) {
-    console.error("Failed to load version metadata:", err);
+    showToast("Could not load version info.", "warning");
     container.innerHTML = "";
   }
 }
@@ -79,7 +74,7 @@ async function loadCredits() {
     layoutCredits();
     startAutoplay();
   } catch (err) {
-    console.error("Failed to load credits:", err);
+    showToast("Could not load credits.", "warning");
     document.querySelector(".credits")?.remove();
   }
 }
@@ -132,6 +127,5 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-init();
 initHomeMeta();
 loadCredits();

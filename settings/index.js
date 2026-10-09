@@ -193,7 +193,6 @@ function importUsers(file) {
       renderUsers();
       showToast("Users imported.", "success");
     } catch (err) {
-      console.error("Import failed:", err);
       showToast("Invalid users file.", "danger");
     }
   };

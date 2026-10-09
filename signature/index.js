@@ -47,4 +47,4 @@ const flow = mountSignatureFlow(document.getElementById("flow"), {
 });
 
 // Download OpenCV (~8 MB) in the background so the popup is ready sooner.
-preloadSignatureEngine().catch((err) => console.error(err));
+preloadSignatureEngine().catch(() => showToast("Could not preload the signature engine. It will load when needed.", "warning"));

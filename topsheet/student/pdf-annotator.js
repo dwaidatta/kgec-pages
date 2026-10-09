@@ -478,8 +478,6 @@ async function loadPdf(file) {
 
     updateDownloadState();
   } catch (err) {
-    console.error(err);
-
     stat.textContent = `Error: ${err.message || "Could not read this PDF."}`;
 
     showToast("Could not open this PDF.", "danger");
@@ -765,9 +763,7 @@ async function downloadPdf() {
       lossy ? "warning" : "success"
     );
   } catch (err) {
-    console.error(err);
-
-    showToast("Could not create the PDF. See console for details.", "danger");
+    showToast(`Could not create the PDF: ${err.message || err}`, "danger");
   } finally {
     updateDownloadState();
   }
@@ -790,7 +786,7 @@ export function activateStudentFlow() {
   pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
 
   // OpenCV is ~8 MB; start fetching it before the student needs it.
-  preloadSignatureEngine().catch((err) => console.error(err));
+  preloadSignatureEngine().catch(() => showToast("Could not preload the signature engine. It will load when needed.", "warning"));
 
   $("st-pdf").addEventListener("change", (e) => {
     const file = e.target.files[0];

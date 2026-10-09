@@ -153,7 +153,6 @@ async function handleMergeAndSave() {
       successCount++;
       await sleep(300);
     } catch (err) {
-      console.error(`Failed to merge group "${group.label || group.id}":`, err);
       showToast(`Failed to merge "${group.label || "Untitled group"}". Make sure every file is a valid PDF.`, "danger");
     }
   }
@@ -255,7 +254,7 @@ async function loadThumbnail(fileEntry) {
   try {
     fileEntry.thumbnail = await renderFirstPageThumbnail(pdfjsLib, fileEntry.blob);
   } catch (err) {
-    console.error(`Failed to render a preview for "${fileEntry.name}":`, err);
+    showToast(`Could not render a preview for "${fileEntry.name}".`, "warning");
     fileEntry.thumbnail = "error";
   }
   render();

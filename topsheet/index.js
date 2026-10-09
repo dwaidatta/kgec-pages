@@ -1199,7 +1199,7 @@ function parseCSV(text) {
   });
 
   if (result.errors.length) {
-    console.warn("CSV parse warnings:", result.errors);
+    showToast(`CSV had ${result.errors.length} parse warning(s). Check the rows.`, "warning");
   }
 
   const rows = result.data;
@@ -1604,7 +1604,7 @@ async function generateAllTopsheets() {
       try {
         s.processedSig = await readAsDataUrl(s.sigFile);
       } catch (err) {
-        console.warn(`Could not read signature for ${s.name}:`, err);
+        showToast(`Could not read the signature for ${s.name}.`, "warning");
 
         s.processedSig = null;
       }
@@ -1626,9 +1626,7 @@ async function generateAllTopsheets() {
 
     showToast(`${students.length} topsheets ready! Click "Export All as PDF".`, "success");
   } catch (err) {
-    console.error("Preparing pages failed:", err);
-
-    showToast("Could not prepare the pages. See console for details.", "danger");
+    showToast(`Could not prepare the pages: ${err.message || err}`, "danger");
   }
 
   setProgress("Done!", 100);
@@ -1742,9 +1740,7 @@ async function downloadBlankSheet() {
 
     frame.contentWindow.print();
   } catch (err) {
-    console.error("Sheet download failed:", err);
-
-    showToast("Download failed. See console for details.", "danger");
+    showToast(`Download failed: ${err.message || err}`, "danger");
 
     done();
   }
@@ -2068,8 +2064,6 @@ async function init() {
   try {
     state.layout = await loadTopsheetLayout();
   } catch (err) {
-    console.error(err);
-
     showToast("Could not load the default topsheet layout.", "danger");
 
     return;
@@ -2309,7 +2303,7 @@ function initLayoutControls(hasLastUsed) {
     const next = key === "__default__" || !saved ? defaultLayout : saved;
 
     if (key !== "__default__" && !saved) {
-      console.warn(`Layout "${key}" not found, falling back to default.`);
+      showToast(`Layout "${key}" not found, using the default.`, "warning");
 
       renderLayoutSelect();
     }
