@@ -744,62 +744,20 @@ function setImgEl(selector, dataURL) {
 
 // Signature / seal pickers (same popup as the student flow)
 
-function applyPickedImage({ stateKey, previewId, statusId, variantsId }, variants) {
-  const previewEl = document.getElementById(previewId);
+function applyPickedImage({ stateKey }, variants) {
+  state.common[stateKey] = variants[0].dataUrl;
 
-  const variantsEl = document.getElementById(variantsId);
-
-  const use = (v) => {
-    state.common[stateKey] = v.dataUrl;
-
-    previewEl.src = v.dataUrl;
-
-    previewEl.classList.add("has-img");
-
-    document.getElementById(statusId).textContent = "Ready";
-
-    refreshCommonImages();
-
-    variantsEl.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.key === v.key));
-  };
-
-  variantsEl.replaceChildren();
-
-  variantsEl.classList.toggle("d-none", variants.length < 2);
-
-  for (const v of variants) {
-    const b = document.createElement("button");
-
-    b.type = "button";
-
-    b.dataset.key = v.key;
-
-    b.className = "btn btn-sm btn-outline-secondary flex-fill";
-
-    b.textContent = v.label;
-
-    b.addEventListener("click", () => use(v));
-
-    variantsEl.appendChild(b);
-  }
-
-  use(variants[0]);
+  refreshCommonImages();
 }
 
 const SIG_OPTS = {
   kind: "signature",
   stateKey: "processedTeacherSig",
-  previewId: "prev-teacher-sig",
-  statusId: "stat-teacher-sig",
-  variantsId: "var-teacher-sig",
 };
 
 const SEAL_OPTS = {
   kind: "stamp",
   stateKey: "processedCollegeSeal",
-  previewId: "prev-college-seal",
-  statusId: "stat-college-seal",
-  variantsId: "var-college-seal",
 };
 
 // Extracts a new image in the popup, saves it on this device and puts it on the sheet.
