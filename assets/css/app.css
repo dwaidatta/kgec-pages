@@ -520,7 +520,7 @@ a.topbar-chip:focus {
 }
 
 .page-home .hero p {
-  font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.25rem);
+  font-size: clamp(0.8rem, 0.75rem + 0.25vw, 1rem);
 }
 
 .page-home .hero-badge {
