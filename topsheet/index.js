@@ -1693,11 +1693,6 @@ function buildTopsheetEl(student) {
 // Wait for all images
 
 async function waitForImages(container) {
-  // Make sure the web font is loaded before the sheet is printed.
-  await document.fonts.load('7pt "Roboto Condensed"');
-
-  await document.fonts.load('bold 7pt "Roboto Condensed"');
-
   const imgs = [...container.querySelectorAll("img")].filter((img) => img.src);
 
   await Promise.all(
@@ -1818,31 +1813,10 @@ async function buildPrintFrame(students, host = null) {
 
     doc.head.appendChild(style);
 
-    // Printed text looks heavier than the smoothed text on screen, so print one
-    // step lighter: normal text at 300 and bold at 600 (the font's own weights).
-    const font = doc.createElement("link");
+    // Text keeps the weights it has on screen.
+    await doc.fonts.load("7pt 'Roboto Condensed'");
 
-    font.rel = "stylesheet";
-
-    font.href = "https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;600;700&display=swap";
-
-    doc.head.appendChild(font);
-
-    await new Promise((resolve) => {
-      font.onload = resolve;
-
-      font.onerror = resolve;
-    });
-
-    const win = iframe.contentWindow;
-
-    sheets.flatMap((sheet) => [sheet, ...sheet.querySelectorAll("*")]).forEach((el) => {
-      el.style.fontWeight = parseInt(win.getComputedStyle(el).fontWeight, 10) >= 600 ? 600 : 300;
-    });
-
-    await doc.fonts.load("300 7pt 'Roboto Condensed'");
-
-    await doc.fonts.load("600 7pt 'Roboto Condensed'");
+    await doc.fonts.load("bold 7pt 'Roboto Condensed'");
 
     await doc.fonts.ready;
 
