@@ -1196,17 +1196,22 @@ function detachForPlacing(img) {
 
   const r = img.getBoundingClientRect();
 
-  const parent = img.offsetParent.getBoundingClientRect();
-
   Object.assign(img.style, {
     maxWidth: "none",
     maxHeight: "none",
     width: `${r.width}px`,
     height: "auto",
     position: "absolute",
-    left: `${r.left - parent.left}px`,
-    top: `${r.top - parent.top}px`,
+    left: "0px",
+    top: "0px",
   });
+
+  // Measure where left/top 0 really lands (the containing block may have a border,
+  // margin or scroll offset) and shift by the difference so the image does not jump.
+  const origin = img.getBoundingClientRect();
+
+  img.style.left = `${r.left - origin.left}px`;
+  img.style.top = `${r.top - origin.top}px`;
 
   img.dataset.placed = "1";
 }
